@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-public class NetworkController : MonoBehaviour
+public class NetworkHost : MonoBehaviour
 {
     public int port = 6077;
     private TcpListener listener;
@@ -18,10 +18,12 @@ public class NetworkController : MonoBehaviour
     private Dictionary<int, NetworkStream> streams = new Dictionary<int, NetworkStream>();
     private Thread listenerThread;
     private PlayerManager playerManager;
-    private int ID = 0;
+    private int clientID = 0;
     private int nextID = 0;
+    private byte[] inputBuffer = new byte[1024]; // Buffer for sending messages
+    private byte[] outputBuffer = new byte[1024]; // Buffer for receiving messages
     private Boolean isHost = false;
-    public static NetworkController instance;
+    public static NetworkHost instance;
     
     // Singleton
     void Awake()
