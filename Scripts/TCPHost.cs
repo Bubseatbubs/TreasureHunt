@@ -135,13 +135,7 @@ public class TCPHost : NetworkController
             // Handle received data
             // Use main thread as Unity doesn't allow API to be used on thread
             AddData(message);
-
-            // If host, send the message to all other peers 
-            // (not including the one that sent it)
-            if (IsHost())
-            {
-                SendDataToClients(message, peerID);
-            }
+            SendDataToClients(message, peerID);
         }
     }
 
