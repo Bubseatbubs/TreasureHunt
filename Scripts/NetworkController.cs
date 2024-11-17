@@ -68,8 +68,6 @@ public class NetworkController : MonoBehaviour
             isHost = false;
             Debug.Log("You are already hosting on another instance!");
         }
-
-
     }
 
     /* 
@@ -112,21 +110,21 @@ public class NetworkController : MonoBehaviour
 
     public void SendData(string message)
     {
-        inputBuffer = Encoding.UTF8.GetBytes(message);
+        byte[] data = Encoding.UTF8.GetBytes(message);
         foreach (KeyValuePair<int, NetworkStream> stream in streams)
         {
-            stream.Value.Write(inputBuffer, 0, inputBuffer.Length);
+            stream.Value.Write(data, 0, data.Length);
             stream.Value.Flush();
         }
     }
 
     public void SendData(string message, int ignoreID)
     {
-        inputBuffer = Encoding.UTF8.GetBytes(message);
+        byte[] data = Encoding.UTF8.GetBytes(message);
         foreach (KeyValuePair<int, NetworkStream> stream in streams)
         {
             if (stream.Key == ignoreID) continue; // Don't send to same client
-            stream.Value.Write(inputBuffer, 0, inputBuffer.Length);
+            stream.Value.Write(data, 0, data.Length);
             stream.Value.Flush();
         }
     }
@@ -186,9 +184,9 @@ public class NetworkController : MonoBehaviour
     private void InitializeClientID(NetworkStream peerStream)
     {
 
-        inputBuffer = BitConverter.GetBytes(nextID);
+        byte[] data = BitConverter.GetBytes(nextID);
         peerStream.Flush();
-        peerStream.Write(inputBuffer, 0, inputBuffer.Length);
+        peerStream.Write(data, 0, data.Length);
         peerStream.Flush();
     }
 
