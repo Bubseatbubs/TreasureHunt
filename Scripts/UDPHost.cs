@@ -12,8 +12,6 @@ public class UDPHost : NetworkController
 {
     private UdpClient udpServer;
     private HashSet<IPEndPoint> connectedClients;
-    private Thread listenerThread;
-    private int nextID = 0;
     public static UDPHost instance;
 
     /* 
@@ -28,8 +26,6 @@ public class UDPHost : NetworkController
         {
             if (instance)
             {
-                // Remove if instance exists
-                Destroy(gameObject);
                 return;
             }
 

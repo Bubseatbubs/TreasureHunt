@@ -8,19 +8,18 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-public class TCPClient : NetworkController
+public class TCPConnection : NetworkController
 {
     private TcpClient host;
     private NetworkStream hostStream;
-    public static TCPClient instance;
+    public static TCPConnection instance;
 
     // Singleton
     public void Instantiate(string hostIP)
     {
         if (instance)
         {
-            // Remove if instance exists
-            Destroy(gameObject);
+            Debug.Log("TCPConnection Instance already exists");
             return;
         }
 
@@ -30,8 +29,8 @@ public class TCPClient : NetworkController
         // Initialize client
         host = new TcpClient(hostIP, port);
         hostStream = host.GetStream();
-
         Debug.Log("Connected to host at IP: " + hostIP);
+        
         // First message returned is the ID
         byte[] bufferID = new byte[4];
         int bytesRead = hostStream.Read(bufferID, 0, bufferID.Length);
@@ -41,7 +40,7 @@ public class TCPClient : NetworkController
             Debug.Log("Received ID: " + receivedNumber);
             ID = receivedNumber;
 
-            playerManager.CreateNewPlayer(ID);
+            PlayerManager.instance.CreateNewPlayer(ID);
         }
         else
         {
@@ -63,14 +62,14 @@ public class TCPClient : NetworkController
             if (bytesRead == 0) break;
 
             string message = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
-            Debug.Log($"Received from peer {peerID}: " + message);
+            Debug.Log($"Received TCP message from peer {peerID}: " + message);
 
             // Handle received data
             // Use main thread as Unity doesn't allow API to be used on thread
             AddData(message);
         }
     }
-    
+
     public void SendDataToHost(string message)
     {
         byte[] data = Encoding.UTF8.GetBytes(message);

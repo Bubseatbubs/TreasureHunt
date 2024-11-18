@@ -802,14 +802,14 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1388076066}
         m_TargetAssemblyTypeName: NetworkController, Assembly-CSharp
-        m_MethodName: ConnectToHost
+        m_MethodName: ConnectToGame
         m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: localhost
+          m_StringArgument: 127.0.0.1
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &664282340
@@ -1085,7 +1085,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1388076066}
         m_TargetAssemblyTypeName: NetworkController, Assembly-CSharp
-        m_MethodName: StartAsHost
+        m_MethodName: HostGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

@@ -13,6 +13,7 @@ public class TCPHost : NetworkController
     private TcpListener listener;
     private Dictionary<int, TcpClient> connectedPeers = new Dictionary<int, TcpClient>();
     private Dictionary<int, NetworkStream> streams = new Dictionary<int, NetworkStream>();
+    private byte[] inputBuffer = new byte[1024];
     private Thread listenerThread;
     private int nextID = 0;
     public static TCPHost instance;
@@ -29,8 +30,6 @@ public class TCPHost : NetworkController
         {
             if (instance)
             {
-                // Remove if instance exists
-                Destroy(gameObject);
                 return;
             }
 
@@ -53,21 +52,21 @@ public class TCPHost : NetworkController
 
     public void SendDataToClients(string message)
     {
-        byte[] data = Encoding.UTF8.GetBytes(message);
+        inputBuffer = Encoding.UTF8.GetBytes(message);
         foreach (KeyValuePair<int, NetworkStream> stream in streams)
         {
-            stream.Value.Write(data, 0, data.Length);
+            stream.Value.Write(inputBuffer, 0, inputBuffer.Length);
             stream.Value.Flush();
         }
     }
 
     public void SendDataToClients(string message, int ignoreID)
     {
-        byte[] data = Encoding.UTF8.GetBytes(message);
+        inputBuffer = Encoding.UTF8.GetBytes(message);
         foreach (KeyValuePair<int, NetworkStream> stream in streams)
         {
             if (stream.Key == ignoreID) continue; // Don't send to same client
-            stream.Value.Write(data, 0, data.Length);
+            stream.Value.Write(inputBuffer, 0, inputBuffer.Length);
             stream.Value.Flush();
         }
     }
@@ -100,11 +99,13 @@ public class TCPHost : NetworkController
         streams.Add(nextID, peerStream);
 
         // Create a player object in the host
-        PlayerManager.instance.CreateNewPlayer(nextID);
+        MainThreadDispatcher.Instance().Enqueue(() =>
+        PlayerManager.instance.CreateNewPlayer(nextID));
         Debug.Log("Created client on the host's end");
 
         // Send all current players and their positions to all clients
-        SendDataToClients(PlayerManager.instance.SendPlayerPositions());
+        MainThreadDispatcher.Instance().Enqueue(() =>
+        SendDataToClients(PlayerManager.instance.SendPlayerPositions()));
         Debug.Log("Sending player positions to all clients");
 
         // Spin a new thread that constantly updates using the peer's data
@@ -114,9 +115,8 @@ public class TCPHost : NetworkController
 
     private void InitializeClientID(NetworkStream peerStream)
     {
-        byte[] data = BitConverter.GetBytes(nextID);
-        peerStream.Flush();
-        peerStream.Write(data, 0, data.Length);
+        inputBuffer = BitConverter.GetBytes(nextID);
+        peerStream.Write(inputBuffer, 0, inputBuffer.Length);
         peerStream.Flush();
     }
 

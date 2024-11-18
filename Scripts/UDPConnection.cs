@@ -8,48 +8,47 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-public class UDPClient : NetworkController
+public class UDPConnection : NetworkController
 {
-    private UDPClient client;
+    private UdpClient client;
     private IPEndPoint serverEndPoint;
+    public static UDPConnection instance;
 
     // Singleton
     public void Instantiate(string hostIP)
     {
         if (instance)
         {
-            // Remove if instance exists
-            Destroy(gameObject);
             return;
         }
 
         // No instance yet, set this to it
-        client = new UDPClient();
-        serverEndPoint = new IPEndPoint(IPAddress.Loopback, port);
+        client = new UdpClient();
+        serverEndPoint = new IPEndPoint(IPAddress.Parse(hostIP), port);
 
-        udpClient.BeginReceive(OnReceiveData, null);
+        client.BeginReceive(OnReceiveData, null);
     }
-    
+
     public void SendDataToHost(string message)
     {
         byte[] data = Encoding.UTF8.GetBytes(message);
-        udpClient.Send(data, data.Length, serverEndPoint);
+        client.Send(data, data.Length, serverEndPoint);
     }
 
     void OnReceiveData(IAsyncResult result)
     {
-        byte[] data = udpClient.EndReceive(result, ref serverEndPoint);
+        byte[] data = client.EndReceive(result, ref serverEndPoint);
         string message = Encoding.UTF8.GetString(data);
         Debug.Log($"Received UDP: {message}");
 
         AddData(message);
 
         // Continue listening
-        udpClient.BeginReceive(OnReceiveData, null);
+        client.BeginReceive(OnReceiveData, null);
     }
 
     void OnApplicationQuit()
     {
-        udpClient.Close();
+        client.Close();
     }
 }

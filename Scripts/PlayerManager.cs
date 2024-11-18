@@ -42,7 +42,7 @@ public class PlayerManager : MonoBehaviour
             if (Input != LastInput)
             {
                 // Only send an input if need be
-                NetworkController.instance.SendData(SendPlayerInput());
+                // NetworkController.Instance().SendData(SendPlayerInput());
             }
 
             LastInput = clientPlayer.GetInput();

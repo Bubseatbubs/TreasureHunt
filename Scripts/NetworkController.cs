@@ -15,7 +15,17 @@ public class NetworkController : MonoBehaviour
     protected static int ID = 0;
     private Boolean isHost = false;
     protected PlayerManager playerManager;
-    private NetworkController instance;
+    private static NetworkController instance;
+    TCPHost tcpHost;
+    UDPHost udpHost;
+    TCPConnection tcpClient;
+    UDPConnection udpClient;
+
+
+    public static NetworkController Instance()
+    {
+        return instance;
+    }
 
     // Singleton
     void Awake()
@@ -32,12 +42,61 @@ public class NetworkController : MonoBehaviour
         playerManager = FindObjectOfType<PlayerManager>();
     }
 
+    /* 
+    Begins a lobby as the host client in the P2P connection.
+    Host client acts similar to a Host.
+    Handles keeping all clients synchronized.
+    Host's ID is always 0.
+    */
+    public void HostGame()
+    {
+        if (isHost)
+        {
+            Debug.Log("Can't host while hosting!");
+            return;
+        }
+        tcpHost = gameObject.AddComponent<TCPHost>();
+        udpHost = gameObject.AddComponent<UDPHost>();
+
+        // Prepare TCP and UDP host
+        tcpHost.Instantiate();
+        udpHost.Instantiate();
+
+        isHost = true;
+
+        // Create host's player object
+        playerManager.CreateNewPlayer(ID);
+
+        Debug.Log("Hosted game!");
+    }
+
+    /* 
+    Connect to an already existing host as a client.
+    Host sends client an ID to use for the session.
+    */
+    public void ConnectToGame(string hostIP)
+    {
+        if (isHost)
+        {
+            Debug.Log("Can't connect while hosting!");
+            return;
+        }
+        tcpClient = gameObject.AddComponent<TCPConnection>();
+        udpClient = gameObject.AddComponent<UDPConnection>();
+
+        tcpClient.Instantiate(hostIP);
+        udpClient.Instantiate(hostIP);
+
+        Debug.Log("Connected to " + hostIP + ":" + port);
+    }
+
     // Run HandleData every game frame to ensure that commands are synchronized
     // with the game itself
     void FixedUpdate()
     {
         int curLength = commands.Count;
-        for (int i = 0; i < curLength; i++) {
+        for (int i = 0; i < curLength; i++)
+        {
             HandleData(commands.Dequeue());
         }
     }
@@ -80,41 +139,14 @@ public class NetworkController : MonoBehaviour
         }
     }
 
-    /* 
-    Begins a lobby as the host client in the P2P connection.
-    Host client acts similar to a server.
-    Handles keeping all clients synchronized.
-    Host's ID is always 0.
-    */
-    public void StartAsHost()
-    {
-        // Create host's player object
-        playerManager.CreateNewPlayer(ID);
-
-        // TODO: Set up UDP and TCP hosts
-    }
-
-    /* 
-    Connect to an already existing host as a client.
-    Host sends client an ID to use for the session.
-    */
-    public void ConnectToHost(string hostIP)
-    {
-        // TODO: Set up UDP and TCP clients
-    }
-
     public int GetID()
     {
         return ID;
     }
 
-    public Boolean IsHost()
-    {
-        return isHost;
-    }
-
     protected void AddData(string message)
     {
+        Debug.Log($"Added {message} to the queue");
         commands.Enqueue(message);
     }
 }
