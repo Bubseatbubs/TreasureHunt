@@ -37,14 +37,18 @@ public class UDPHost : NetworkController
             connectedClients = new HashSet<IPEndPoint>();
 
             udpServer.BeginReceive(OnReceiveData, null);
+            Debug.Log("Hosting a UDP port");
             
-
             // Make new thread that handles accepting client connections
         }
         catch (SocketException)
         {
             Debug.Log("You are already hosting on another instance!");
         }
+    }
+
+    void FixedUpdate() {
+        SendDataToClients(PlayerManager.instance.SendPlayerPositions());
     }
 
     void OnReceiveData(IAsyncResult result) {
@@ -69,7 +73,7 @@ public class UDPHost : NetworkController
         foreach (var client in connectedClients)
         {
             udpServer.Send(data, data.Length, client);
-            Debug.Log($"Sent to {client}: {message}");
+            // Debug.Log($"Sent to {client}: {message}");
         }
     }
 

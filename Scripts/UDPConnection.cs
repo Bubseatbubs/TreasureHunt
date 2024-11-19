@@ -23,9 +23,13 @@ public class UDPConnection : NetworkController
         }
 
         // No instance yet, set this to it
+        instance = this;
+        
         client = new UdpClient();
         serverEndPoint = new IPEndPoint(IPAddress.Parse(hostIP), port);
 
+        Debug.Log($"Connected to UDP port: {hostIP}");
+        SendDataToHost("Connected");
         client.BeginReceive(OnReceiveData, null);
     }
 
@@ -41,7 +45,7 @@ public class UDPConnection : NetworkController
         string message = Encoding.UTF8.GetString(data);
         Debug.Log($"Received UDP: {message}");
 
-        AddData(message);
+        MainThreadDispatcher.Instance().Enqueue(() => HandleData(message));
 
         // Continue listening
         client.BeginReceive(OnReceiveData, null);

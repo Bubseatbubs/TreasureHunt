@@ -13,7 +13,7 @@ public class NetworkController : MonoBehaviour
     public int port = 6077;
     private static Queue<String> commands = new Queue<String>();
     protected static int ID = 0;
-    private Boolean isHost = false;
+    public static Boolean isHost = false;
     protected PlayerManager playerManager;
     private static NetworkController instance;
     TCPHost tcpHost;
@@ -33,7 +33,6 @@ public class NetworkController : MonoBehaviour
         if (instance)
         {
             // Remove if instance exists
-            Destroy(gameObject);
             return;
         }
 
@@ -94,14 +93,14 @@ public class NetworkController : MonoBehaviour
     // with the game itself
     void FixedUpdate()
     {
-        int curLength = commands.Count;
-        for (int i = 0; i < curLength; i++)
-        {
-            HandleData(commands.Dequeue());
+        foreach (string command in commands) {
+            Debug.Log($"Running command {command}");
+            HandleData(command);
         }
+        commands.Clear();
     }
 
-    private void HandleData(string message)
+    protected void HandleData(string message)
     {
         // Parse incoming data, send to relevant managers
         string[] data = message.Split(':');
@@ -144,9 +143,12 @@ public class NetworkController : MonoBehaviour
         return ID;
     }
 
-    protected void AddData(string message)
+    protected static void AddData(string message)
     {
         Debug.Log($"Added {message} to the queue");
         commands.Enqueue(message);
+        foreach (string command in commands) {
+            Debug.Log("Command: " + command);
+        }
     }
 }

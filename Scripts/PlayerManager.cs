@@ -34,15 +34,16 @@ public class PlayerManager : MonoBehaviour
 
     void Update()
     {
-        if (IsPlayerInitialized())
+        if (IsPlayerInitialized() && !NetworkController.isHost)
         {
             // Tell other clients to update player's position
             // Calls NetworkController to handle sending data to other players
+            
             Input = clientPlayer.GetInput();
             if (Input != LastInput)
             {
                 // Only send an input if need be
-                // NetworkController.Instance().SendData(SendPlayerInput());
+                UDPConnection.instance.SendDataToHost(SendPlayerInput());
             }
 
             LastInput = clientPlayer.GetInput();

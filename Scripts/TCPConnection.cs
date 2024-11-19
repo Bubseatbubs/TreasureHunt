@@ -29,7 +29,7 @@ public class TCPConnection : NetworkController
         // Initialize client
         host = new TcpClient(hostIP, port);
         hostStream = host.GetStream();
-        Debug.Log("Connected to host at IP: " + hostIP);
+        Debug.Log("Connected to TCP host at IP: " + hostIP);
         
         // First message returned is the ID
         byte[] bufferID = new byte[4];
@@ -66,7 +66,7 @@ public class TCPConnection : NetworkController
 
             // Handle received data
             // Use main thread as Unity doesn't allow API to be used on thread
-            AddData(message);
+            MainThreadDispatcher.Instance().Enqueue(() => HandleData(message));
         }
     }
 

@@ -40,6 +40,8 @@ public class TCPHost : NetworkController
             listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
 
+            Debug.Log("Hosting a TCP port");
+
             // Make new thread that handles accepting client connections
             listenerThread = new Thread(() => AcceptClientConnections());
             listenerThread.Start();
@@ -78,7 +80,7 @@ public class TCPHost : NetworkController
         {
             // Accept the connection
             TcpClient newClient = listener.AcceptTcpClient();
-            Debug.Log("Peer connected!");
+            Debug.Log("Peer connected to TCP Port!");
 
             InitializeClient(newClient);
         }
@@ -134,8 +136,7 @@ public class TCPHost : NetworkController
 
             // Handle received data
             // Use main thread as Unity doesn't allow API to be used on thread
-            AddData(message);
-            SendDataToClients(message, peerID);
+            MainThreadDispatcher.Instance().Enqueue(() => HandleData(message));
         }
     }
 
