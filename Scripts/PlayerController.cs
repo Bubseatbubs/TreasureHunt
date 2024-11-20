@@ -67,9 +67,14 @@ public class PlayerController : MonoBehaviour
         return rb2d.position.y;
     }
 
-    public void SetPosition(float x, float y)
+    public Vector2 GetPosition()
     {
-        rb2d.position = new Vector2(x, y);
+        return rb2d.position;
+    }
+
+    public void SetPosition(Vector2 pos)
+    {
+        rb2d.position = pos;
     }
 
     public Vector2 GetInput()

@@ -11,6 +11,7 @@ public class PlayerManager : MonoBehaviour
     public static PlayerManager instance;
     public Vector3 spawnPosition = Vector3.zero;
     public Quaternion spawnRotation = Quaternion.identity;
+    public float correctionThreshold = 0.1f;
     private Dictionary<int, PlayerController> players = new Dictionary<int, PlayerController>();
     PlayerController clientPlayer;
     Vector2 Input;
@@ -34,20 +35,25 @@ public class PlayerManager : MonoBehaviour
 
     void Update()
     {
-        if (IsPlayerInitialized() && !NetworkController.isHost)
+        if (IsPlayerInitialized())
         {
             // Tell other clients to update player's position
             // Calls NetworkController to handle sending data to other players
-            
+
             Input = clientPlayer.GetInput();
             if (Input != LastInput)
             {
                 // Only send an input if need be
-                UDPConnection.instance.SendDataToHost(SendPlayerInput());
+                if (NetworkController.isHost) {
+                    UDPHost.instance.SendDataToClients(SendPlayerInput());
+                }
+                else {
+                    UDPConnection.instance.SendDataToHost(SendPlayerInput());
+                }
             }
 
             LastInput = clientPlayer.GetInput();
-            
+
         }
     }
 
@@ -100,7 +106,18 @@ public class PlayerManager : MonoBehaviour
             Debug.Log("Adding player " + id);
             CreateNewPlayer(id);
         }
-        players[id].SetPosition(x, y);
+
+        Vector2 currentPosition = players[id].GetPosition();
+        Vector2 serverPosition = new Vector2(x, y);
+
+        if (Vector2.Distance(currentPosition, serverPosition) > correctionThreshold)
+        {
+            players[id].SetPosition(Vector2.Lerp(currentPosition, serverPosition, 0.25f));
+        }
+        else
+        {
+            players[id].SetPosition(serverPosition);
+        }
     }
 
     public string SendPlayerInput()

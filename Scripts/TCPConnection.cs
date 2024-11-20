@@ -15,7 +15,7 @@ public class TCPConnection : NetworkController
     public static TCPConnection instance;
 
     // Singleton
-    public void Instantiate(string hostIP)
+    public void Instantiate(string hostIP, int port)
     {
         if (instance)
         {
@@ -66,7 +66,7 @@ public class TCPConnection : NetworkController
 
             // Handle received data
             // Use main thread as Unity doesn't allow API to be used on thread
-            MainThreadDispatcher.Instance().Enqueue(() => HandleData(message));
+            AddData(message);
         }
     }
 

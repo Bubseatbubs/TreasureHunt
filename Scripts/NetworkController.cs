@@ -10,7 +10,6 @@ using UnityEngine;
 
 public class NetworkController : MonoBehaviour
 {
-    public int port = 6077;
     private static Queue<String> commands = new Queue<String>();
     protected static int ID = 0;
     public static Boolean isHost = false;
@@ -20,7 +19,6 @@ public class NetworkController : MonoBehaviour
     UDPHost udpHost;
     TCPConnection tcpClient;
     UDPConnection udpClient;
-
 
     public static NetworkController Instance()
     {
@@ -47,7 +45,7 @@ public class NetworkController : MonoBehaviour
     Handles keeping all clients synchronized.
     Host's ID is always 0.
     */
-    public void HostGame()
+    public void HostGame(int port)
     {
         if (isHost)
         {
@@ -58,8 +56,8 @@ public class NetworkController : MonoBehaviour
         udpHost = gameObject.AddComponent<UDPHost>();
 
         // Prepare TCP and UDP host
-        tcpHost.Instantiate();
-        udpHost.Instantiate();
+        tcpHost.Instantiate(port);
+        udpHost.Instantiate(port);
 
         isHost = true;
 
@@ -73,8 +71,9 @@ public class NetworkController : MonoBehaviour
     Connect to an already existing host as a client.
     Host sends client an ID to use for the session.
     */
-    public void ConnectToGame(string hostIP)
+    public void ConnectToGame(string hostIP, int port)
     {
+        Debug.Log($"Using IP Address: {hostIP} and port {port}");
         if (isHost)
         {
             Debug.Log("Can't connect while hosting!");
@@ -83,8 +82,8 @@ public class NetworkController : MonoBehaviour
         tcpClient = gameObject.AddComponent<TCPConnection>();
         udpClient = gameObject.AddComponent<UDPConnection>();
 
-        tcpClient.Instantiate(hostIP);
-        udpClient.Instantiate(hostIP);
+        tcpClient.Instantiate(hostIP, port);
+        udpClient.Instantiate(hostIP, port);
 
         Debug.Log("Connected to " + hostIP + ":" + port);
     }
@@ -93,11 +92,13 @@ public class NetworkController : MonoBehaviour
     // with the game itself
     void FixedUpdate()
     {
-        foreach (string command in commands) {
-            Debug.Log($"Running command {command}");
+        // Only clear out commands that arrived this frame
+        int commandLength = commands.Count;
+        for (int i = 0; i < commandLength; i++) {
+            if (commands.Count <= 0) break;
+            string command = commands.Dequeue();
             HandleData(command);
         }
-        commands.Clear();
     }
 
     protected void HandleData(string message)

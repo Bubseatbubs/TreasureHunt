@@ -20,7 +20,7 @@ public class UDPHost : NetworkController
     Handles keeping all clients synchronized.
     Host's ID is always 0.
     */
-    public void Instantiate()
+    public void Instantiate(int port)
     {
         try
         {
@@ -38,6 +38,8 @@ public class UDPHost : NetworkController
 
             udpServer.BeginReceive(OnReceiveData, null);
             Debug.Log("Hosting a UDP port");
+
+            InvokeRepeating("UpdatePositions", 0.1f, 0.1f);
             
             // Make new thread that handles accepting client connections
         }
@@ -47,7 +49,7 @@ public class UDPHost : NetworkController
         }
     }
 
-    void FixedUpdate() {
+    void UpdatePositions() {
         SendDataToClients(PlayerManager.instance.SendPlayerPositions());
     }
 
@@ -73,7 +75,7 @@ public class UDPHost : NetworkController
         foreach (var client in connectedClients)
         {
             udpServer.Send(data, data.Length, client);
-            // Debug.Log($"Sent to {client}: {message}");
+            Debug.Log($"Sent to {client}: {message}");
         }
     }
 

@@ -15,7 +15,7 @@ public class UDPConnection : NetworkController
     public static UDPConnection instance;
 
     // Singleton
-    public void Instantiate(string hostIP)
+    public void Instantiate(string hostIP, int port)
     {
         if (instance)
         {
@@ -24,7 +24,7 @@ public class UDPConnection : NetworkController
 
         // No instance yet, set this to it
         instance = this;
-        
+
         client = new UdpClient();
         serverEndPoint = new IPEndPoint(IPAddress.Parse(hostIP), port);
 
@@ -44,9 +44,8 @@ public class UDPConnection : NetworkController
         byte[] data = client.EndReceive(result, ref serverEndPoint);
         string message = Encoding.UTF8.GetString(data);
         Debug.Log($"Received UDP: {message}");
-
-        MainThreadDispatcher.Instance().Enqueue(() => HandleData(message));
-
+        MainThreadDispatcher.Instance().Enqueue(() => AddData(message));
+        
         // Continue listening
         client.BeginReceive(OnReceiveData, null);
     }

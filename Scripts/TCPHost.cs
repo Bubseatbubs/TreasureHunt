@@ -24,7 +24,7 @@ public class TCPHost : NetworkController
     Handles keeping all clients synchronized.
     Host's ID is always 0.
     */
-    public void Instantiate()
+    public void Instantiate(int port)
     {
         try
         {
@@ -136,7 +136,7 @@ public class TCPHost : NetworkController
 
             // Handle received data
             // Use main thread as Unity doesn't allow API to be used on thread
-            MainThreadDispatcher.Instance().Enqueue(() => HandleData(message));
+            AddData(message);
         }
     }
 
