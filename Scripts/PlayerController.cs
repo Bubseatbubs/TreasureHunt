@@ -1,21 +1,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cinemachine;
+using Unity.IO.LowLevel.Unsafe;
 
 public class PlayerController : MonoBehaviour
 {
+    public CinemachineVirtualCamera virtualCamera;
     public float moveSpeed;
     public Rigidbody2D rb2d;
     public Vector2 forceToApply;
     public float forceDamping;
     int playerID;
-    private PlayerManager playerManager; // Handles spawning in players
     Vector2 PlayerInput;
 
     // Start is called before the first frame update
     void Start()
     {
-
+        if (NetworkController.Instance().GetID() == playerID)
+        {
+            virtualCamera = FindObjectOfType<CinemachineVirtualCamera>();
+            virtualCamera.Follow = rb2d.transform;
+        }
     }
 
     // Update is called once per frame
@@ -25,7 +31,6 @@ public class PlayerController : MonoBehaviour
         {
             PlayerInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
         }
-
         Move(PlayerInput);
     }
 
@@ -57,6 +62,7 @@ public class PlayerController : MonoBehaviour
     {
         return playerID;
     }
+
     public float GetXPosition()
     {
         return rb2d.position.x;

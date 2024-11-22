@@ -6,7 +6,6 @@ using UnityEngine.UIElements;
 
 public class PlayerManager : MonoBehaviour
 {
-
     public PlayerController player;
     public static PlayerManager instance;
     public Vector3 spawnPosition = Vector3.zero;
@@ -33,7 +32,7 @@ public class PlayerManager : MonoBehaviour
         instance = this;
     }
 
-    void Update()
+    void FixedUpdate()
     {
         if (IsPlayerInitialized())
         {
@@ -44,10 +43,12 @@ public class PlayerManager : MonoBehaviour
             if (Input != LastInput)
             {
                 // Only send an input if need be
-                if (NetworkController.isHost) {
+                if (NetworkController.isHost)
+                {
                     UDPHost.instance.SendDataToClients(SendPlayerInput());
                 }
-                else {
+                else
+                {
                     UDPConnection.instance.SendDataToHost(SendPlayerInput());
                 }
             }
@@ -116,7 +117,7 @@ public class PlayerManager : MonoBehaviour
         }
         else
         {
-            players[id].SetPosition(serverPosition);
+            players[id].SetPosition(Vector2.Lerp(currentPosition, serverPosition, 0.05f));
         }
     }
 

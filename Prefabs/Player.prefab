@@ -99,6 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0072480856ce86c468dcebd9b19cee8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  virtualCamera: {fileID: 0}
   moveSpeed: 8
   rb2d: {fileID: 6537032197521042427}
   forceToApply: {x: 0, y: 0}

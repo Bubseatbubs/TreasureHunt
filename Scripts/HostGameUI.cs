@@ -15,7 +15,6 @@ public class HostGameUI : MonoBehaviour
         {
             if (connectMenu.activeSelf)
             {
-                Host();
                 connectMenu.SetActive(false);
             }
             else
@@ -27,6 +26,7 @@ public class HostGameUI : MonoBehaviour
 
     public void Host()
     {
+        ToggleMenu();
         int port;
         if (int.TryParse(convertTMPToString(PortInput), out port))
         {

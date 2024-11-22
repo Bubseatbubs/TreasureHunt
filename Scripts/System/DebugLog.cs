@@ -3,6 +3,7 @@ using System.Collections;
 
 /*
 Code sourced from: https://stackoverflow.com/questions/67704820/how-do-i-print-unitys-debug-log-to-the-screen-gui
+Used only for debugging purposes.
 */
 public class DebugLog : MonoBehaviour
 {

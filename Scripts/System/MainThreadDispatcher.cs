@@ -5,6 +5,11 @@ using System.Threading.Tasks;
 using Unity.VisualScripting;
 using UnityEngine;
 
+/*
+Unity has a limitation on threads. Nothing related to the Unity API can be run
+on a thread. As such, the purpose of this class is for threads to make calls to
+the main thread to run a specific function that uses the Unity API.
+*/
 public class MainThreadDispatcher : MonoBehaviour
 {
     private static readonly Queue<Action> executionQueue = new Queue<Action>();

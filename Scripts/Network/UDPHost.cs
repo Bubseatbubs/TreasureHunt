@@ -13,7 +13,6 @@ public class UDPHost : NetworkController
     private UdpClient udpServer;
     private HashSet<IPEndPoint> connectedClients;
     public static UDPHost instance;
-    private bool lookingToReceive = false;
 
     /* 
     Begins a lobby as the host client in the P2P connection.
@@ -55,9 +54,7 @@ public class UDPHost : NetworkController
     }
 
     void FixedUpdate() {
-        if (lookingToReceive) {
-            udpServer.BeginReceive(OnReceiveData, null);
-        }
+        udpServer.BeginReceive(OnReceiveData, null);
     }
 
     void OnReceiveData(IAsyncResult result) {
@@ -72,9 +69,7 @@ public class UDPHost : NetworkController
         // Debug.Log($"Received UDP message: {message}");
 
         AddData(message);
-
-        // Continue listening
-        lookingToReceive = true;
+        SendDataToClients(message);
     }
 
     public void SendDataToClients(string message)
