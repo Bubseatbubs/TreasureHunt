@@ -132,7 +132,7 @@ public class TCPHost : NetworkController
             if (bytesRead == 0) break;
 
             string message = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
-            Debug.Log($"Received from peer {peerID}: " + message);
+            // Debug.Log($"Received from peer {peerID}: " + message);
 
             // Handle received data
             // Use main thread as Unity doesn't allow API to be used on thread

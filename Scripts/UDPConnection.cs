@@ -13,6 +13,7 @@ public class UDPConnection : NetworkController
     private UdpClient client;
     private IPEndPoint serverEndPoint;
     public static UDPConnection instance;
+    private bool lookingToReceive = false;
 
     // Singleton
     public void Instantiate(string hostIP, int port)
@@ -30,6 +31,7 @@ public class UDPConnection : NetworkController
 
         Debug.Log($"Connected to UDP port: {hostIP}");
         SendDataToHost("Connected");
+        lookingToReceive = false;
         client.BeginReceive(OnReceiveData, null);
     }
 
@@ -39,15 +41,21 @@ public class UDPConnection : NetworkController
         client.Send(data, data.Length, serverEndPoint);
     }
 
+    void FixedUpdate() {
+        if (lookingToReceive) {
+            client.BeginReceive(OnReceiveData, null);
+        }
+    }
+
     void OnReceiveData(IAsyncResult result)
     {
         byte[] data = client.EndReceive(result, ref serverEndPoint);
         string message = Encoding.UTF8.GetString(data);
-        Debug.Log($"Received UDP: {message}");
+        // Debug.Log($"Received UDP: {message}");
         MainThreadDispatcher.Instance().Enqueue(() => AddData(message));
         
         // Continue listening
-        client.BeginReceive(OnReceiveData, null);
+        lookingToReceive = true;
     }
 
     void OnApplicationQuit()
