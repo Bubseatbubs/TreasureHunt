@@ -73,7 +73,8 @@ public class UDPHost : NetworkController
 
         AddData(message);
 
-        udpServer.BeginReceive(OnReceiveData, null); // Continue listening
+        // Continue listening
+        lookingToReceive = true;
     }
 
     public void SendDataToClients(string message)
@@ -82,7 +83,7 @@ public class UDPHost : NetworkController
         foreach (var client in connectedClients)
         {
             udpServer.Send(data, data.Length, client);
-            Debug.Log($"Sent to {client}: {message}");
+            // Debug.Log($"Sent to {client}: {message}");
         }
     }
 

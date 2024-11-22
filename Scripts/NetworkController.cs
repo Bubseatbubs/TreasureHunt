@@ -146,10 +146,6 @@ public class NetworkController : MonoBehaviour
 
     protected static void AddData(string message)
     {
-        Debug.Log($"Added {message} to the queue");
         commands.Enqueue(message);
-        foreach (string command in commands) {
-            Debug.Log("Command: " + command);
-        }
     }
 }
