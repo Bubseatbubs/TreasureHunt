@@ -102,7 +102,7 @@ public class TCPHost : NetworkController
 
         // Create a player object in the host
         MainThreadDispatcher.Instance().Enqueue(() =>
-        PlayerManager.instance.CreateNewPlayer(nextID));
+        PlayerManager.CreateNewPlayer(nextID));
         Debug.Log("Created client on the host's end");
 
         // Send all current players and their positions to all clients

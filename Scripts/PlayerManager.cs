@@ -6,13 +6,14 @@ using UnityEngine.UIElements;
 
 public class PlayerManager : MonoBehaviour
 {
-    public PlayerController player;
+    public GameObject playerPrefab;
     public static PlayerManager instance;
-    public Vector3 spawnPosition = Vector3.zero;
-    public Quaternion spawnRotation = Quaternion.identity;
-    public float correctionThreshold = 0.1f;
-    private Dictionary<int, PlayerController> players = new Dictionary<int, PlayerController>();
-    PlayerController clientPlayer;
+    private static PlayerController playerController;
+    private static Vector3 spawnPosition = Vector3.zero;
+    private static Quaternion spawnRotation = Quaternion.identity;
+    private static float correctionThreshold = 0.1f;
+    private static Dictionary<int, PlayerController> players = new Dictionary<int, PlayerController>();
+    private static PlayerController clientPlayer;
     Vector2 Input;
     Vector2 LastInput;
 
@@ -30,6 +31,7 @@ public class PlayerManager : MonoBehaviour
 
         // No instance yet, set this to it
         instance = this;
+        playerController = playerPrefab.GetComponent<PlayerController>();
     }
 
     void FixedUpdate()
@@ -58,7 +60,7 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public void CreateNewPlayer(int id)
+    public static void CreateNewPlayer(int id)
     {
         if (players.ContainsKey(id))
         {
@@ -69,7 +71,7 @@ public class PlayerManager : MonoBehaviour
         else
         {
             // Instantiate a new player
-            player = Instantiate(player, spawnPosition, spawnRotation);
+            PlayerController player = Instantiate(playerController, spawnPosition, spawnRotation);
             player.AssignID(id);
             players.Add(id, player);
             Debug.Log($"Create player object with ID of {id}");
@@ -91,16 +93,16 @@ public class PlayerManager : MonoBehaviour
 
     public string SendPlayerPositions()
     {
-        string response = "PlayerManager:UpdatePlayerPositions";
+        string response = "PlayerManager:UpdatePlayerPositions:";
         foreach (KeyValuePair<int, PlayerController> p in players)
         {
-            response += ":" + p.Key + "|" + p.Value.GetXPosition() + "|" + p.Value.GetYPosition();
+            response += p.Key + "|" + p.Value.GetXPosition() + "|" + p.Value.GetYPosition() + "/";
         }
 
         return response;
     }
 
-    public void UpdatePlayerPosition(int id, float x, float y)
+    public static void UpdatePlayerPosition(int id, float x, float y)
     {
         if (!players.ContainsKey(id))
         {
@@ -121,6 +123,20 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    public static void UpdatePlayerPositions(string message)
+    {
+        string[] playerData = message.Split('/');
+        for (int i = 0; i < playerData.Length - 1; i++)
+        {
+            Debug.Log(playerData[i]);
+            string[] currentPlayerData = playerData[i].Split('|');
+            int playerId = int.Parse(currentPlayerData[0]);
+            float x = float.Parse(currentPlayerData[1]);
+            float y = float.Parse(currentPlayerData[2]);
+            UpdatePlayerPosition(playerId, x, y);
+        }
+    }
+
     public string SendPlayerInput()
     {
         Vector2 Input = clientPlayer.GetInput();
@@ -129,13 +145,13 @@ public class PlayerManager : MonoBehaviour
         return response;
     }
 
-    public void ReceivePlayerInput(int id, float x, float y)
+    public static void ReceivePlayerInput(int id, float x, float y)
     {
         Vector2 Input = new Vector2(x, y).normalized;
         players[id].SetInput(Input);
     }
 
-    public Boolean IsPlayerInitialized()
+    public static Boolean IsPlayerInitialized()
     {
         return clientPlayer != null;
     }

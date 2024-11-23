@@ -5,20 +5,22 @@ using System.Text;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
+using System.Reflection;
 
 public class NetworkController : MonoBehaviour
 {
     private static Queue<String> commands = new Queue<String>();
     protected static int ID = 0;
     public static Boolean isHost = false;
-    protected PlayerManager playerManager;
     private static NetworkController instance;
     TCPHost tcpHost;
     UDPHost udpHost;
     TCPConnection tcpClient;
     UDPConnection udpClient;
+    
+    [SerializeField]
+    private GameObject mazeGeneratorObject;
 
     public static NetworkController Instance()
     {
@@ -36,7 +38,6 @@ public class NetworkController : MonoBehaviour
 
         // No instance yet, set this to it
         instance = this;
-        playerManager = FindObjectOfType<PlayerManager>();
     }
 
     /* 
@@ -54,6 +55,7 @@ public class NetworkController : MonoBehaviour
         }
         tcpHost = gameObject.AddComponent<TCPHost>();
         udpHost = gameObject.AddComponent<UDPHost>();
+        MazeGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MazeGenerator>();
 
         // Prepare TCP and UDP host
         tcpHost.Instantiate(port);
@@ -62,7 +64,10 @@ public class NetworkController : MonoBehaviour
         isHost = true;
 
         // Create host's player object
-        playerManager.CreateNewPlayer(ID);
+        PlayerManager.CreateNewPlayer(ID);
+
+        // Create maze
+        mazeGenerator.Instantiate();
 
         Debug.Log("Hosted game!");
     }
@@ -85,22 +90,28 @@ public class NetworkController : MonoBehaviour
         tcpClient.Instantiate(hostIP, port);
         udpClient.Instantiate(hostIP, port);
 
+        // Create maze
+        MazeGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MazeGenerator>();
+        mazeGenerator.Instantiate();
+
         Debug.Log("Connected to " + hostIP + ":" + port);
     }
 
-    // Run HandleData every game frame to ensure that commands are synchronized
-    // with the game itself
     void FixedUpdate()
     {
         // Only clear out commands that arrived this frame
         int commandLength = commands.Count;
-        for (int i = 0; i < commandLength; i++) {
+        for (int i = 0; i < commandLength; i++)
+        {
             if (commands.Count <= 0) break;
             string command = commands.Dequeue();
             HandleData(command);
         }
     }
 
+    // Run HandleData every game frame to ensure that commands are synchronized
+    // with the game itself
+    // HandleData takes a message and converts it into a static method.
     protected void HandleData(string message)
     {
         // Parse incoming data, send to relevant managers
@@ -111,32 +122,36 @@ public class NetworkController : MonoBehaviour
             return;
         }
 
-        if (data[1] == "UpdatePlayerPosition")
+        Type type = Type.GetType(data[0]);
+        if (type == null)
         {
-            int playerId = int.Parse(data[2]);
-            float x = float.Parse(data[3]);
-            float y = float.Parse(data[4]);
+            Debug.Log($"Class type '{data[0]}' could not be found.");
+            return;
+        }
 
-            PlayerManager.instance.UpdatePlayerPosition(playerId, x, y);
-        }
-        else if (data[1] == "ReceivePlayerInput")
+        MethodInfo method = type.GetMethod(data[1]);
+        if (method == null)
         {
-            int playerId = int.Parse(data[2]);
-            float x = float.Parse(data[3]);
-            float y = float.Parse(data[4]);
-            PlayerManager.instance.ReceivePlayerInput(playerId, x, y);
+            Debug.Log($"Method type '{data[1]}' could not be found.");
+            return;
         }
-        else if (data[1] == "UpdatePlayerPositions")
+
+        ParameterInfo[] methodParams = method.GetParameters();
+        object[] typedParams = new object[methodParams.Length];
+        for (int i = 2; i < data.Length; i++)
         {
-            for (int i = 2; i < data.Length; i++)
+            // Convert the rest into parameters to use for the method
+            if (i >= methodParams.Length + 2)
             {
-                string[] playerData = data[i].Split('|');
-                int playerId = int.Parse(playerData[0]);
-                float x = float.Parse(playerData[1]);
-                float y = float.Parse(playerData[2]);
-                PlayerManager.instance.UpdatePlayerPosition(playerId, x, y);
+                Debug.Log("Insufficient parameters provided for the method.");
+                return;
             }
+
+            // Convert parameter string to the appropriate type
+            typedParams[i - 2] = Convert.ChangeType(data[i], methodParams[i - 2].ParameterType);
         }
+
+        object result = method.Invoke(instance, typedParams);
     }
 
     public int GetID()

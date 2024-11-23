@@ -13,6 +13,7 @@ public class TCPConnection : NetworkController
     private TcpClient host;
     private NetworkStream hostStream;
     public static TCPConnection instance;
+    Thread hostThread;
 
     // Singleton
     public void Instantiate(string hostIP, int port)
@@ -40,7 +41,7 @@ public class TCPConnection : NetworkController
             Debug.Log("Client's ID is now: " + receivedNumber);
             ID = receivedNumber;
 
-            PlayerManager.instance.CreateNewPlayer(ID);
+            PlayerManager.CreateNewPlayer(ID);
         }
         else
         {
@@ -48,7 +49,7 @@ public class TCPConnection : NetworkController
         }
 
         // Begin accepting information from host
-        Thread hostThread = new Thread(() => HandleHost(hostStream, 0));
+        hostThread = new Thread(() => HandleHost(hostStream, 0));
         hostThread.Start();
     }
 
@@ -75,6 +76,22 @@ public class TCPConnection : NetworkController
         byte[] data = Encoding.UTF8.GetBytes(message);
         hostStream.Write(data, 0, data.Length);
         hostStream.Flush();
+    }
+
+    public string SendAndReceiveDataFromHost(string message) {
+        // Temporarily stop host thread to get specific data
+        hostThread.Abort();
+        byte[] peerBuffer = new byte[4096];
+        SendDataToHost(message);
+        int bytesRead = hostStream.Read(peerBuffer, 0, peerBuffer.Length);
+        if (bytesRead == 0) return ""; // TODO: Return error message
+
+        string receivedData = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
+
+        // Restart host thread
+        hostThread = new Thread(() => HandleHost(hostStream, 0));
+        hostThread.Start();
+        return receivedData;
     }
 
     private void OnApplicationQuit()
