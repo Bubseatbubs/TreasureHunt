@@ -40,8 +40,6 @@ public class TCPConnection : NetworkController
             int receivedNumber = BitConverter.ToInt32(bufferID, 0);
             Debug.Log("Client's ID is now: " + receivedNumber);
             ID = receivedNumber;
-
-            PlayerManager.CreateNewPlayer(ID);
         }
         else
         {

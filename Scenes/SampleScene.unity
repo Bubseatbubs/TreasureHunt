@@ -1020,7 +1020,7 @@ Transform:
   m_GameObject: {fileID: 325722537}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -4.8, y: -0.3, z: 0.012508862}
+  m_LocalPosition: {x: -4.94, y: -0.35, z: 0.012508862}
   m_LocalScale: {x: 200, y: 200, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1624,7 +1624,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.503108, y: 0.63081753, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2976,12 +2976,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1372634090}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.4996003, y: 3.4714918, z: -0.6295825}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -6.228089, y: 3.0454605, z: -0.61707366}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1959757668}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1388076064
 GameObject:
@@ -3028,6 +3028,51 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mazeGeneratorObject: {fileID: 1372634090}
+--- !u!1 &1409306803
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1409306804}
+  - component: {fileID: 1409306805}
+  m_Layer: 0
+  m_Name: RandomSeed
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1409306804
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1409306803}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1726150626}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1409306805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1409306803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c90f70357767a954c864001fb6a8fb39, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _seed: 0
 --- !u!1 &1414004140
 GameObject:
   m_ObjectHideFlags: 0
@@ -3526,7 +3571,7 @@ Transform:
   m_GameObject: {fileID: 1604199845}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 1.503108, y: 0.63081753, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -3804,7 +3849,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2237601346912366386, guid: 3852e36482fae4047894c2c02bbdb780, type: 3}
       propertyPath: m_Name
-      value: MapHitbox (2)
+      value: The Song...
       objectReference: {fileID: 0}
     - target: {fileID: 8248649622851944972, guid: 3852e36482fae4047894c2c02bbdb780, type: 3}
       propertyPath: m_LocalScale.y
@@ -3812,11 +3857,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8248649622851944972, guid: 3852e36482fae4047894c2c02bbdb780, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -55.8
+      value: -43.91
       objectReference: {fileID: 0}
     - target: {fileID: 8248649622851944972, guid: 3852e36482fae4047894c2c02bbdb780, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 18.7
+      value: 23.92
       objectReference: {fileID: 0}
     - target: {fileID: 8248649622851944972, guid: 3852e36482fae4047894c2c02bbdb780, type: 3}
       propertyPath: m_LocalPosition.z
@@ -4066,6 +4111,7 @@ Transform:
   - {fileID: 1388076065}
   - {fileID: 863682335}
   - {fileID: 1695873966}
+  - {fileID: 1409306804}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1731515871
@@ -4657,6 +4703,7 @@ Transform:
   - {fileID: 1653524835}
   - {fileID: 225809131}
   - {fileID: 325722538}
+  - {fileID: 1372634092}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1980165628
@@ -4957,4 +5004,3 @@ SceneRoots:
   - {fileID: 503631006}
   - {fileID: 485934872}
   - {fileID: 1959757668}
-  - {fileID: 1372634092}

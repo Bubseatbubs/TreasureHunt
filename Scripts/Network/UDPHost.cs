@@ -13,6 +13,7 @@ public class UDPHost : NetworkController
     private UdpClient udpServer;
     private HashSet<IPEndPoint> connectedClients;
     public static UDPHost instance;
+    public bool isUDPPortActive { get; private set; }
 
     /* 
     Begins a lobby as the host client in the P2P connection.
@@ -39,18 +40,12 @@ public class UDPHost : NetworkController
             udpServer.BeginReceive(OnReceiveData, null);
             Debug.Log("Hosting a UDP port");
 
-            InvokeRepeating("UpdatePositions", 0.1f, 0.1f);
-            
-            // Make new thread that handles accepting client connections
+            isUDPPortActive = true;
         }
         catch (SocketException)
         {
             Debug.Log("You are already hosting on another instance!");
         }
-    }
-
-    void UpdatePositions() {
-        SendDataToClients(PlayerManager.instance.SendPlayerPositions());
     }
 
     void FixedUpdate() {

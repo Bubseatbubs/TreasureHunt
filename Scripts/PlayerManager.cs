@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Unity.IO.LowLevel.Unsafe;
 
 public class PlayerManager : MonoBehaviour
 {
@@ -14,7 +15,7 @@ public class PlayerManager : MonoBehaviour
     private static float correctionThreshold = 0.1f;
     private static Dictionary<int, PlayerController> players = new Dictionary<int, PlayerController>();
     private static PlayerController clientPlayer;
-    Vector2 Input;
+    Vector2 PlayerInput;
     Vector2 LastInput;
 
     /*
@@ -40,13 +41,13 @@ public class PlayerManager : MonoBehaviour
         {
             // Tell other clients to update player's position
             // Calls NetworkController to handle sending data to other players
-
-            Input = clientPlayer.GetInput();
-            if (Input != LastInput)
+            PlayerInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
+            if (PlayerInput != LastInput)
             {
                 // Only send an input if need be
                 if (NetworkController.isHost)
                 {
+                    clientPlayer.SetInput(PlayerInput);
                     UDPHost.instance.SendDataToClients(SendPlayerInput());
                 }
                 else
@@ -128,7 +129,6 @@ public class PlayerManager : MonoBehaviour
         string[] playerData = message.Split('/');
         for (int i = 0; i < playerData.Length - 1; i++)
         {
-            Debug.Log(playerData[i]);
             string[] currentPlayerData = playerData[i].Split('|');
             int playerId = int.Parse(currentPlayerData[0]);
             float x = float.Parse(currentPlayerData[1]);
@@ -137,11 +137,24 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
+    public void BeginSendingHostPositionsToClients()
+    {
+        InvokeRepeating("SendHostPositionsToClients", 0f, 0.1f);
+    }
+
+    private void SendHostPositionsToClients()
+    {
+        // Send player movement data to clients
+        if (UDPHost.instance != null)
+        {
+            UDPHost.instance.SendDataToClients(PlayerManager.instance.SendPlayerPositions());
+        }
+    }
+
     public string SendPlayerInput()
     {
-        Vector2 Input = clientPlayer.GetInput();
         string response = "PlayerManager:ReceivePlayerInput:" + clientPlayer.GetID() + ":" +
-        Input.x + ":" + Input.y;
+        PlayerInput.x + ":" + PlayerInput.y;
         return response;
     }
 

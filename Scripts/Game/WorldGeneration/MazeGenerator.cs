@@ -32,18 +32,6 @@ public class MazeGenerator : MonoBehaviour
 
     public void Instantiate()
     {
-        if (NetworkController.isHost) {
-            _seed = Random.Range(1000000, 9999999);
-            Debug.Log($"Seed: {_seed}");
-            Random.InitState(_seed);
-        }
-        else {
-            _seed = RequestSeed();
-
-            Debug.Log($"Seed: {_seed}");
-            Random.InitState(_seed);
-        }
-        
         _mazeGrid = new MazeCell[_mazeWidth, _mazeDepth];
         x_displacement = (_mazeWidth / 2) * _scale;
         y_displacement = (_mazeDepth / 2) * _scale;
@@ -60,15 +48,7 @@ public class MazeGenerator : MonoBehaviour
 
         GenerateMaze(null, _mazeGrid[0, 0]);
         ClearCenter();
-    }
-
-    int RequestSeed() {
-        string message = TCPConnection.instance.SendAndReceiveDataFromHost("MazeGenerator:SendSeed");
-        return int.Parse(message);
-    }
-
-    public static void SendSeed() {
-        TCPHost.instance.SendDataToClients($"{_seed}");   
+        CreateRooms(4, 2);
     }
 
     private void GenerateMaze(MazeCell previousCell, MazeCell currentCell)
@@ -86,6 +66,29 @@ public class MazeGenerator : MonoBehaviour
                 GenerateMaze(currentCell, nextCell);
             }
         } while (nextCell != null);
+    }
+
+    private void CreateRooms(int rooms, int roomSize)
+    {
+        for (int i = 0; i < rooms; i++)
+        {
+            int originX = Random.Range(roomSize, _mazeWidth - roomSize);
+            int originY = Random.Range(roomSize, _mazeDepth - roomSize);
+            if (_mazeGrid[originX, originY].IsCleared)
+            {
+                i--;
+                continue;
+            }
+
+            Debug.Log($"Creating room at {originX} {originY}");
+            for (int x = originX; x < originX + roomSize; x++)
+            {
+                for (int y = originY; y < originY + roomSize; y++)
+                {
+                    _mazeGrid[x, y].ClearAllWalls();
+                }
+            }
+        }
     }
 
     private MazeCell GetNextUnvisitedCell(MazeCell currentCell)

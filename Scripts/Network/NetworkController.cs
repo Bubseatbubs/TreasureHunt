@@ -66,8 +66,14 @@ public class NetworkController : MonoBehaviour
         // Create host's player object
         PlayerManager.CreateNewPlayer(ID);
 
+        // Generate Seed
+        RandomSeed.instance.InitializeSeed();
+
         // Create maze
         mazeGenerator.Instantiate();
+
+        // Start sending player positions to clients
+        PlayerManager.instance.BeginSendingHostPositionsToClients();
 
         Debug.Log("Hosted game!");
     }
@@ -90,9 +96,15 @@ public class NetworkController : MonoBehaviour
         tcpClient.Instantiate(hostIP, port);
         udpClient.Instantiate(hostIP, port);
 
+        // Generate Seed
+        RandomSeed.instance.InitializeSeed();
+
         // Create maze
         MazeGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MazeGenerator>();
         mazeGenerator.Instantiate();
+
+        // Create player
+        PlayerManager.CreateNewPlayer(ID);
 
         Debug.Log("Connected to " + hostIP + ":" + port);
     }

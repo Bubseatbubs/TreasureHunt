@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,6 +21,8 @@ public class MazeCell : MonoBehaviour
     private GameObject _unvisitedBlock;
 
     public bool IsVisited { get; private set; }
+
+    public bool IsCleared { get; private set; }
 
     public void Visit() {
         IsVisited = true;
