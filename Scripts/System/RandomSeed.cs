@@ -5,6 +5,7 @@ using UnityEngine;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEditor;
+using System;
 
 /*
 Unity has a limitation on threads. Nothing related to the Unity API can be run
@@ -18,7 +19,7 @@ public class RandomSeed : MonoBehaviour
     // Singleton instance of the dispatcher
     public static RandomSeed instance;
 
-    void Awake()
+    void Start()
     {
         instance = this;
     }
@@ -27,27 +28,36 @@ public class RandomSeed : MonoBehaviour
     public void InitializeSeed() {
         if (NetworkController.isHost)
         {
-            _seed = Random.Range(1000000, 9999999);
+            _seed = UnityEngine.Random.Range(1000000, 9999999);
             Debug.Log($"Seed: {_seed}");
-            Random.InitState(_seed);
+            UnityEngine.Random.InitState(_seed);
         }
         else
         {
             _seed = RequestSeed();
 
             Debug.Log($"Seed: {_seed}");
-            Random.InitState(_seed);
+            UnityEngine.Random.InitState(_seed);
         }
     }
 
     int RequestSeed()
     {
+        int s = 0;
         string message = TCPConnection.instance.SendAndReceiveDataFromHost("RandomSeed:SendSeed");
-        return int.Parse(message);
+        try {
+            s = int.Parse(message);
+        }
+        catch (FormatException) {
+
+        }
+
+        return s;
     }
 
     public static void SendSeed()
     {
+        Debug.Log($"Sent the number {instance._seed}");
         TCPHost.instance.SendDataToClients($"{instance._seed}");
     }
 }

@@ -82,9 +82,13 @@ public class TCPConnection : NetworkController
         byte[] peerBuffer = new byte[4096];
         SendDataToHost(message);
         int bytesRead = hostStream.Read(peerBuffer, 0, peerBuffer.Length);
-        if (bytesRead == 0) return ""; // TODO: Return error message
+        if (bytesRead == 0) {
+            Debug.Log("Error reading from host, resending!");
+            return SendAndReceiveDataFromHost(message);
+        } 
 
         string receivedData = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
+        Debug.Log("Received from Host" + receivedData);
 
         // Restart host thread
         hostThread = new Thread(() => HandleHost(hostStream, 0));

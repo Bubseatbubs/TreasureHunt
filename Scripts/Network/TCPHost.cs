@@ -105,11 +105,6 @@ public class TCPHost : NetworkController
         PlayerManager.CreateNewPlayer(nextID));
         Debug.Log("Created client on the host's end");
 
-        // Send all current players and their positions to all clients
-        MainThreadDispatcher.Instance().Enqueue(() =>
-        SendDataToClients(PlayerManager.instance.SendPlayerPositions()));
-        Debug.Log("Sending player positions to all clients");
-
         // Spin a new thread that constantly updates using the peer's data
         Thread clientThread = new Thread(() => HandlePeer(peerStream, nextID));
         clientThread.Start();

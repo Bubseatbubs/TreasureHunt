@@ -36,6 +36,7 @@ public class UDPConnection : NetworkController
     public void SendDataToHost(string message)
     {
         byte[] data = Encoding.UTF8.GetBytes(message);
+        // Debug.Log($"Sent UDP: {message}");
         client.Send(data, data.Length, serverEndPoint);
     }
 

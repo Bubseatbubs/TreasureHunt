@@ -27,6 +27,10 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        if (NetworkController.Instance().GetID() == playerID)
+        {
+            PlayerInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
+        }
         Move(PlayerInput);
     }
 

@@ -70,7 +70,7 @@ public class NetworkController : MonoBehaviour
         RandomSeed.instance.InitializeSeed();
 
         // Create maze
-        mazeGenerator.Instantiate();
+        // mazeGenerator.Instantiate();
 
         // Start sending player positions to clients
         PlayerManager.instance.BeginSendingHostPositionsToClients();
@@ -126,6 +126,7 @@ public class NetworkController : MonoBehaviour
     // HandleData takes a message and converts it into a static method.
     protected void HandleData(string message)
     {
+        
         // Parse incoming data, send to relevant managers
         string[] data = message.Split(':');
         if (data.Length < 2)
