@@ -12,6 +12,10 @@ public class ConnectToHostUI : MonoBehaviour
     public TMP_InputField PortInput;
     public TMP_InputField UsernameInput;
 
+    [SerializeField]
+    private GameObject networkButtons;
+
+
     public void ToggleMenu()
     {
         if (connectMenu != null)
@@ -45,6 +49,7 @@ public class ConnectToHostUI : MonoBehaviour
 
         NetworkController networkController = NetworkController.instance;
         networkController.ConnectToGame(IPAddress, port, username);
+        networkButtons.SetActive(false);
     }
 
     private string convertFieldToString(TMP_InputField field)

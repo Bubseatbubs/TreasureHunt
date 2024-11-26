@@ -195,6 +195,12 @@ public class PlayerManager : MonoBehaviour
         ItemManager.HideItem(itemID);
     }
 
+    public static void ReturnPlayerItems(int playerID)
+    {
+        Debug.Log($"Player {playerID} returned their items");
+        players[playerID].ReturnItems();
+    }
+
     public string SendPlayerInput()
     {
         Vector2 Input = clientPlayer.GetInput();

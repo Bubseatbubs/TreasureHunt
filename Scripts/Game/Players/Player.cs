@@ -21,7 +21,7 @@ public class Player : MonoBehaviour
     private Vector2 PlayerInput;
     private static Dictionary<int, Item> inventory = new Dictionary<int, Item>();
     public int carriedValue { get; private set; }
-    public int cashedInValue { get; private set; }
+    public int balance { get; private set; }
     private PlayerStats statWindow;
 
     [SerializeField]
@@ -131,21 +131,29 @@ public class Player : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter2D(Collision2D collision)
-    {
-        if (NetworkController.isHost)
-        {
-            if (collision.gameObject.CompareTag("SpawnArea"))
-            {
-                Debug.Log($"Player {ID} is on spawn area");
-            }
-        }
-    }
-
     private void SendItemPickupToClients(int itemID)
     {
         // Client asks host if they can pick up an item
         TCPHost.instance.SendDataToClients($"PlayerManager:UpdatePlayerItems:{ID}:{itemID}");
+    }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (NetworkController.isHost)
+        {
+            if (collision.gameObject.CompareTag("SpawnArea") && inventoryCount > 0)
+            {
+                Debug.Log($"Player {ID} returned to spawn. Cashing in items!");
+                SendItemReturnToClients();
+                PlayerManager.ReturnPlayerItems(ID);
+            }
+        }
+    }
+
+    private void SendItemReturnToClients()
+    {
+        // Client asks host if they can pick up an item
+        TCPHost.instance.SendDataToClients($"PlayerManager:ReturnPlayerItems:{ID}");
     }
 
     public void AddItem(int itemID) {
@@ -154,6 +162,7 @@ public class Player : MonoBehaviour
             Debug.Log($"Item {itemID} doesn't exist!");
         }
 
+        // Update player info
         inventory.Add(itemID, item);
         carriedValue += item.value;
         weight += item.weight;
@@ -163,12 +172,24 @@ public class Player : MonoBehaviour
         // Update UI
         if (NetworkController.ID == ID)
         {
-            statWindow.UpdateStats(weight, carriedValue, inventoryCount);
+            statWindow.UpdateStats(weight, carriedValue, inventoryCount, balance);
         }
     }
 
-    void OnCollisionExit2D(Collision2D collision)
+    public void ReturnItems()
     {
+        // Update player info
+        balance += carriedValue;
+        carriedValue = 0;
+        weight = 0f;
+        speedMultiplier = 0f;
+        inventoryCount = 0;
+        inventory.Clear();
 
+        // Update UI
+        if (NetworkController.ID == ID)
+        {
+            statWindow.UpdateStats(weight, carriedValue, inventoryCount, balance);
+        }
     }
 }

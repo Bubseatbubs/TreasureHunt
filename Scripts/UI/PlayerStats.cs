@@ -12,17 +12,21 @@ public class PlayerStats : MonoBehaviour
     TextMeshProUGUI inventoryCountText;
 
     [SerializeField]
-    TextMeshProUGUI totalValueText;
+    TextMeshProUGUI itemValueText;
+
+    [SerializeField]
+    TextMeshProUGUI balanceText;
 
     void Start()
     {
-        UpdateStats(0f, 0, 0);
+        UpdateStats(0f, 0, 0, 0);
     }
 
-    public void UpdateStats(float weight, int totalValue, int inventoryCount)
+    public void UpdateStats(float weight, int itemValue, int inventoryCount, int balance)
     {
         weightText.text = $"Total Weight: {weight} LB";
-        totalValueText.text = $"Total Value: ${totalValue}";
+        itemValueText.text = $"Total Value Of Items: ${itemValue}";
         inventoryCountText.text = $"Items in Inventory: {inventoryCount}";
+        balanceText.text = $"Balance: ${balance}";
     }
 }
