@@ -14,6 +14,9 @@ public class HostGameUI : MonoBehaviour
     [SerializeField]
     private GameObject networkButtons;
 
+    [SerializeField]
+    private GameObject startGameButton;
+
     public void ToggleMenu()
     {
         if (connectMenu != null)
@@ -48,6 +51,7 @@ public class HostGameUI : MonoBehaviour
         NetworkController networkController = NetworkController.instance;
         networkController.HostGame(port, username);
         networkButtons.SetActive(false);
+        startGameButton.SetActive(true);
     }
 
     private string convertFieldToString(TMP_InputField tmpComponent)

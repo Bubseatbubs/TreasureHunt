@@ -15,6 +15,9 @@ public class ConnectToHostUI : MonoBehaviour
     [SerializeField]
     private GameObject networkButtons;
 
+    [SerializeField]
+    private GameObject waitForHostPanel;
+
 
     public void ToggleMenu()
     {
@@ -50,6 +53,7 @@ public class ConnectToHostUI : MonoBehaviour
         NetworkController networkController = NetworkController.instance;
         networkController.ConnectToGame(IPAddress, port, username);
         networkButtons.SetActive(false);
+        waitForHostPanel.SetActive(true);
     }
 
     private string convertFieldToString(TMP_InputField field)

@@ -18,7 +18,8 @@ public class NetworkController : MonoBehaviour
     UDPHost udpHost;
     TCPConnection tcpClient;
     UDPConnection udpClient;
-    
+    private string username;
+
     [SerializeField]
     private GameObject mazeGeneratorObject;
 
@@ -41,7 +42,7 @@ public class NetworkController : MonoBehaviour
     Handles keeping all clients synchronized.
     Host's ID is always 0.
     */
-    public void HostGame(int port, string username)
+    public void HostGame(int port, string name)
     {
         if (isHost)
         {
@@ -50,7 +51,6 @@ public class NetworkController : MonoBehaviour
         }
         tcpHost = gameObject.AddComponent<TCPHost>();
         udpHost = gameObject.AddComponent<UDPHost>();
-        MapGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MapGenerator>();
 
         // Prepare TCP and UDP host
         tcpHost.Instantiate(port);
@@ -58,17 +58,9 @@ public class NetworkController : MonoBehaviour
 
         isHost = true;
 
-        // Create host's player object
-        PlayerManager.CreateNewPlayer(ID, username);
-
         // Generate Seed
         RandomSeed.instance.InitializeSeed();
-
-        // Create map
-        mazeGenerator.Instantiate();
-
-        // Start sending player positions to clients
-        PlayerManager.instance.BeginSendingHostPositionsToClients();
+        username = name;
 
         Debug.Log("Hosted game!");
     }
@@ -77,7 +69,7 @@ public class NetworkController : MonoBehaviour
     Connect to an already existing host as a client.
     Host sends client an ID to use for the session.
     */
-    public void ConnectToGame(string hostIP, int port, string username)
+    public void ConnectToGame(string hostIP, int port, string name)
     {
         // Set up TCP/UDP ports
         Debug.Log($"Using IP Address: {hostIP} and port {port}");
@@ -97,18 +89,43 @@ public class NetworkController : MonoBehaviour
         // Generate Seed
         RandomSeed.instance.InitializeSeed();
 
-        // Create maze
-        MapGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MapGenerator>();
-        mazeGenerator.Instantiate();
-
-        // Create player
-        PlayerManager.CreateNewPlayer(ID, username);
-
-        // Ask host to create player and for usernames
-        TCPConnection.instance.SendDataToHost($"PlayerManager:CreateNewPlayer:{ID}:{username}");
-        PlayerManager.RequestPlayerUsernames();
+        username = name;
 
         Debug.Log($"Connected to {hostIP}:{port}");
+    }
+
+    public void StartGame()
+    {
+        if (isHost)
+        {
+            MapGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MapGenerator>();
+            
+            // Create host's player object
+            PlayerManager.CreateNewPlayer(ID, username);
+
+            // Create map
+            mazeGenerator.Instantiate();
+
+            // Start sending player positions to clients
+            PlayerManager.instance.BeginSendingHostPositionsToClients();
+
+            Debug.Log("The game has begun!");
+        }
+        else
+        {
+            // Create maze
+            MapGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MapGenerator>();
+            mazeGenerator.Instantiate();
+
+            // Create player
+            PlayerManager.CreateNewPlayer(ID, username);
+
+            // Ask host to create player and for usernames
+            TCPConnection.instance.SendDataToHost($"PlayerManager:CreateNewPlayer:{ID}:{username}");
+            PlayerManager.RequestPlayerUsernames();
+
+            Debug.Log("The game has begun!");
+        }
     }
 
     void FixedUpdate()
@@ -128,7 +145,7 @@ public class NetworkController : MonoBehaviour
     // HandleData takes a message and converts it into a static method.
     protected void HandleData(string message)
     {
-        
+
         // Parse incoming data, send to relevant managers
         string[] data = message.Split(':');
         if (data.Length < 2)
@@ -166,13 +183,15 @@ public class NetworkController : MonoBehaviour
             typedParams[i - 2] = Convert.ChangeType(data[i], methodParams[i - 2].ParameterType);
         }
 
-        try {
+        try
+        {
             object result = method.Invoke(instance, typedParams);
         }
-        catch (TargetException) {
+        catch (TargetException)
+        {
             Debug.Log($"Error: could not invoke method passed in: {message}");
         }
-        
+
     }
 
     public static void AddData(string message)
