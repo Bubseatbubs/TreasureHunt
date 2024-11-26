@@ -10,6 +10,7 @@ public class ConnectToHostUI : MonoBehaviour
     public GameObject connectMenu;
     public TMP_InputField IPAddressInput;
     public TMP_InputField PortInput;
+    public TMP_InputField UsernameInput;
 
     public void ToggleMenu()
     {
@@ -29,7 +30,8 @@ public class ConnectToHostUI : MonoBehaviour
     public void ConnectToHost()
     {
         string IPAddress = convertFieldToString(IPAddressInput);
-        string Port = convertFieldToString(PortInput);
+        string username = convertFieldToString(UsernameInput);
+
         int port;
         if (int.TryParse(convertFieldToString(PortInput), out port))
         {
@@ -41,8 +43,8 @@ public class ConnectToHostUI : MonoBehaviour
             return;
         }
 
-        NetworkController networkController = NetworkController.Instance();
-        networkController.ConnectToGame(IPAddress, port);
+        NetworkController networkController = NetworkController.instance;
+        networkController.ConnectToGame(IPAddress, port, username);
     }
 
     private string convertFieldToString(TMP_InputField field)

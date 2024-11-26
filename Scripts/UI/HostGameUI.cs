@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UIElements;
+using System;
 
 public class HostGameUI : MonoBehaviour
 {
     public GameObject connectMenu;
     public TMP_InputField PortInput;
+    public TMP_InputField UsernameInput;
 
     public void ToggleMenu()
     {
@@ -27,8 +29,10 @@ public class HostGameUI : MonoBehaviour
     public void Host()
     {
         ToggleMenu();
+        String username = convertFieldToString(UsernameInput);
+
         int port;
-        if (int.TryParse(convertTMPToString(PortInput), out port))
+        if (int.TryParse(convertFieldToString(PortInput), out port))
         {
             Debug.Log($"Parsed value: {port}");
         }
@@ -38,11 +42,11 @@ public class HostGameUI : MonoBehaviour
             return;
         }
 
-        NetworkController networkController = NetworkController.Instance();
-        networkController.HostGame(port);
+        NetworkController networkController = NetworkController.instance;
+        networkController.HostGame(port, username);
     }
 
-    private string convertTMPToString(TMP_InputField tmpComponent)
+    private string convertFieldToString(TMP_InputField tmpComponent)
     {
         string text = tmpComponent.text;
         return text;

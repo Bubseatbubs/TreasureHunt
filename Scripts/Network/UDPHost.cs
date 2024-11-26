@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-public class UDPHost : NetworkController
+public class UDPHost : MonoBehaviour
 {
     private UdpClient udpServer;
     private HashSet<IPEndPoint> connectedClients;
@@ -63,7 +63,7 @@ public class UDPHost : NetworkController
         string message = Encoding.UTF8.GetString(data);
         // Debug.Log($"Received UDP message: {message}");
 
-        AddData(message);
+        NetworkController.AddData(message);
         SendDataToClients(message);
     }
 

@@ -11,9 +11,9 @@ using System.Reflection;
 public class NetworkController : MonoBehaviour
 {
     private static Queue<String> commands = new Queue<String>();
-    protected static int ID = 0;
+    public static int ID = 0;
     public static Boolean isHost = false;
-    private static NetworkController instance;
+    public static NetworkController instance;
     TCPHost tcpHost;
     UDPHost udpHost;
     TCPConnection tcpClient;
@@ -21,11 +21,6 @@ public class NetworkController : MonoBehaviour
     
     [SerializeField]
     private GameObject mazeGeneratorObject;
-
-    public static NetworkController Instance()
-    {
-        return instance;
-    }
 
     // Singleton
     void Awake()
@@ -46,7 +41,7 @@ public class NetworkController : MonoBehaviour
     Handles keeping all clients synchronized.
     Host's ID is always 0.
     */
-    public void HostGame(int port)
+    public void HostGame(int port, string username)
     {
         if (isHost)
         {
@@ -55,7 +50,7 @@ public class NetworkController : MonoBehaviour
         }
         tcpHost = gameObject.AddComponent<TCPHost>();
         udpHost = gameObject.AddComponent<UDPHost>();
-        MazeGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MazeGenerator>();
+        MapGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MapGenerator>();
 
         // Prepare TCP and UDP host
         tcpHost.Instantiate(port);
@@ -64,13 +59,13 @@ public class NetworkController : MonoBehaviour
         isHost = true;
 
         // Create host's player object
-        PlayerManager.CreateNewPlayer(ID);
+        PlayerManager.CreateNewPlayer(ID, username);
 
         // Generate Seed
         RandomSeed.instance.InitializeSeed();
 
-        // Create maze
-        // mazeGenerator.Instantiate();
+        // Create map
+        mazeGenerator.Instantiate();
 
         // Start sending player positions to clients
         PlayerManager.instance.BeginSendingHostPositionsToClients();
@@ -82,14 +77,17 @@ public class NetworkController : MonoBehaviour
     Connect to an already existing host as a client.
     Host sends client an ID to use for the session.
     */
-    public void ConnectToGame(string hostIP, int port)
+    public void ConnectToGame(string hostIP, int port, string username)
     {
+        // Set up TCP/UDP ports
         Debug.Log($"Using IP Address: {hostIP} and port {port}");
+
         if (isHost)
         {
             Debug.Log("Can't connect while hosting!");
             return;
         }
+
         tcpClient = gameObject.AddComponent<TCPConnection>();
         udpClient = gameObject.AddComponent<UDPConnection>();
 
@@ -100,13 +98,17 @@ public class NetworkController : MonoBehaviour
         RandomSeed.instance.InitializeSeed();
 
         // Create maze
-        MazeGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MazeGenerator>();
+        MapGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MapGenerator>();
         mazeGenerator.Instantiate();
 
         // Create player
-        PlayerManager.CreateNewPlayer(ID);
+        PlayerManager.CreateNewPlayer(ID, username);
 
-        Debug.Log("Connected to " + hostIP + ":" + port);
+        // Ask host to create player and for usernames
+        TCPConnection.instance.SendDataToHost($"PlayerManager:CreateNewPlayer:{ID}:{username}");
+        PlayerManager.RequestPlayerUsernames();
+
+        Debug.Log($"Connected to {hostIP}:{port}");
     }
 
     void FixedUpdate()
@@ -164,15 +166,16 @@ public class NetworkController : MonoBehaviour
             typedParams[i - 2] = Convert.ChangeType(data[i], methodParams[i - 2].ParameterType);
         }
 
-        object result = method.Invoke(instance, typedParams);
+        try {
+            object result = method.Invoke(instance, typedParams);
+        }
+        catch (TargetException) {
+            Debug.Log($"Error: could not invoke method passed in: {message}");
+        }
+        
     }
 
-    public int GetID()
-    {
-        return ID;
-    }
-
-    protected static void AddData(string message)
+    public static void AddData(string message)
     {
         commands.Enqueue(message);
     }

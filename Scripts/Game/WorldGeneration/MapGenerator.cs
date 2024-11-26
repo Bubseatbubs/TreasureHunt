@@ -6,11 +6,14 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEditor;
 
-public class MazeGenerator : MonoBehaviour
+public class MapGenerator : MonoBehaviour
 {
 
     [SerializeField]
     private MazeCell _mazeCellPrefab;
+
+    [SerializeField]
+    private MazeRoom _mazeRoomPrefab;
 
     [SerializeField]
     private int _mazeWidth;
@@ -46,9 +49,11 @@ public class MazeGenerator : MonoBehaviour
             }
         }
 
-        GenerateMaze(null, _mazeGrid[0, 0]);
-        ClearCenter();
-        CreateRooms(4, 2);
+        // Map generation process
+        GenerateMaze(null, _mazeGrid[0, 0]); // Make initial maze
+        ClearCenter(); // Clear out the center where players spawn in
+        CreateRooms(4, 2); // Spawn in rooms
+        CreateItems(24);
     }
 
     private void GenerateMaze(MazeCell previousCell, MazeCell currentCell)
@@ -68,18 +73,22 @@ public class MazeGenerator : MonoBehaviour
         } while (nextCell != null);
     }
 
-    private void CreateRooms(int rooms, int roomSize)
+    private void CreateRooms(int numberOfRooms, int roomSize)
     {
-        for (int i = 0; i < rooms; i++)
+        for (int i = 0; i < numberOfRooms; i++)
         {
+            // Find a random spot to place a room
             int originX = Random.Range(roomSize, _mazeWidth - roomSize);
             int originY = Random.Range(roomSize, _mazeDepth - roomSize);
+
+            // If something was already placed there, go to another spot
             if (_mazeGrid[originX, originY].IsCleared)
             {
                 i--;
                 continue;
             }
 
+            // Clear space
             Debug.Log($"Creating room at {originX} {originY}");
             for (int x = originX; x < originX + roomSize; x++)
             {
@@ -88,6 +97,27 @@ public class MazeGenerator : MonoBehaviour
                     _mazeGrid[x, y].ClearAllWalls();
                 }
             }
+
+            // Create room
+            float realX = ConvertXGridToLocation(originX) + 2.5f;
+            float realY = ConvertYGridToLocation(originY) + 2.5f;
+            Instantiate(_mazeRoomPrefab, new Vector2(realX, realY), Quaternion.identity);
+        }
+    }
+
+    private void CreateItems(int numberOfItems)
+    {
+        for (int i = 0; i < numberOfItems; i++)
+        {
+            // Find a random spot to place an item
+            int originX = Random.Range(0, _mazeWidth);
+            int originY = Random.Range(0, _mazeDepth);
+
+            // Create item
+            Debug.Log($"Spawning item {i} at {originX} {originY}");
+
+            // Create room
+            ItemManager.CreateNewItem(i, GetCenterOfCell(originX, originY));
         }
     }
 
@@ -205,5 +235,22 @@ public class MazeGenerator : MonoBehaviour
     private int ConvertYLocationToGrid(int y)
     {
         return (y + y_displacement) / _scale;
+    }
+
+    private float ConvertXGridToLocation(int x)
+    {
+        return x * _scale - x_displacement;
+    }
+
+    private float ConvertYGridToLocation(int y)
+    {
+        return y * _scale - y_displacement;
+    }
+
+    private Vector2 GetCenterOfCell(int GridX, int GridY) {
+        float x = ConvertXGridToLocation(GridX) + 0.25f;
+        float y = ConvertYGridToLocation(GridY) + 0.25f;
+
+        return new Vector2(x, y);
     }
 }

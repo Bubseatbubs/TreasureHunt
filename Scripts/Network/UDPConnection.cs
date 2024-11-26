@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-public class UDPConnection : NetworkController
+public class UDPConnection : MonoBehaviour
 {
     private UdpClient client;
     private IPEndPoint serverEndPoint;
@@ -49,7 +49,7 @@ public class UDPConnection : NetworkController
         byte[] data = client.EndReceive(result, ref serverEndPoint);
         string message = Encoding.UTF8.GetString(data);
         // Debug.Log($"Received UDP: {message}");
-        MainThreadDispatcher.Instance().Enqueue(() => AddData(message));
+        NetworkController.AddData(message);
     }
 
     void OnApplicationQuit()

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-public class TCPConnection : NetworkController
+public class TCPConnection : MonoBehaviour
 {
     private TcpClient host;
     private NetworkStream hostStream;
@@ -39,7 +39,7 @@ public class TCPConnection : NetworkController
         {
             int receivedNumber = BitConverter.ToInt32(bufferID, 0);
             Debug.Log("Client's ID is now: " + receivedNumber);
-            ID = receivedNumber;
+            NetworkController.ID = receivedNumber;
         }
         else
         {
@@ -65,7 +65,7 @@ public class TCPConnection : NetworkController
 
             // Handle received data
             // Use main thread as Unity doesn't allow API to be used on thread
-            AddData(message);
+            NetworkController.AddData(message);
         }
     }
 

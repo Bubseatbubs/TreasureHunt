@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-public class TCPHost : NetworkController
+public class TCPHost : MonoBehaviour
 {
     private TcpListener listener;
     private Dictionary<int, TcpClient> connectedPeers = new Dictionary<int, TcpClient>();
@@ -100,11 +100,6 @@ public class TCPHost : NetworkController
         connectedPeers.Add(nextID, peerClient);
         streams.Add(nextID, peerStream);
 
-        // Create a player object in the host
-        MainThreadDispatcher.Instance().Enqueue(() =>
-        PlayerManager.CreateNewPlayer(nextID));
-        Debug.Log("Created client on the host's end");
-
         // Spin a new thread that constantly updates using the peer's data
         Thread clientThread = new Thread(() => HandlePeer(peerStream, nextID));
         clientThread.Start();
@@ -129,9 +124,7 @@ public class TCPHost : NetworkController
             string message = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
             // Debug.Log($"Received from peer {peerID}: " + message);
 
-            // Handle received data
-            // Use main thread as Unity doesn't allow API to be used on thread
-            AddData(message);
+            NetworkController.AddData(message);
         }
     }
 

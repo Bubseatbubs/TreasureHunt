@@ -6,14 +6,14 @@ using UnityEngine.UIElements;
 
 public class PlayerManager : MonoBehaviour
 {
-    public GameObject playerPrefab;
+    [SerializeField]
+    private GameObject playerPrefab;
     public static PlayerManager instance;
-    private static PlayerController playerController;
-    private static Vector3 spawnPosition = Vector3.zero;
-    private static Quaternion spawnRotation = Quaternion.identity;
+    private static Player playerController;
+    private static Vector2 spawnPosition = Vector2.zero;
     private static float correctionThreshold = 0.1f;
-    private static Dictionary<int, PlayerController> players = new Dictionary<int, PlayerController>();
-    private static PlayerController clientPlayer;
+    private static Dictionary<int, Player> players = new Dictionary<int, Player>();
+    private static Player clientPlayer;
     Vector2 Input;
     Vector2 LastInput;
 
@@ -31,7 +31,7 @@ public class PlayerManager : MonoBehaviour
 
         // No instance yet, set this to it
         instance = this;
-        playerController = playerPrefab.GetComponent<PlayerController>();
+        playerController = playerPrefab.GetComponent<Player>();
     }
 
     void FixedUpdate()
@@ -55,25 +55,31 @@ public class PlayerManager : MonoBehaviour
             }
 
             LastInput = Input;
-
         }
     }
 
-    public static void CreateNewPlayer(int id)
+    public static void CreateNewPlayer(int id, String username)
     {
         if (players.ContainsKey(id))
         {
             // Player already exists
-            Debug.Log("A player with " + id + " already exists.");
+            Debug.Log($"A player with ID {id} already exists.");
             return;
         }
         else
         {
+            // Default player name
+            if (username.Equals(""))
+            {
+                username = $"Player {id}";
+            }
+
             // Instantiate a new player
-            PlayerController player = Instantiate(playerController, spawnPosition, spawnRotation);
+            Player player = Instantiate(playerController, spawnPosition, Quaternion.identity);
             player.AssignID(id);
+            player.AssignUsername(username);
             players.Add(id, player);
-            Debug.Log($"Create player object with ID of {id}");
+            Debug.Log($"Created player with ID of {id} and username {username}");
             if (!IsPlayerInitialized())
             {
                 clientPlayer = player;
@@ -84,29 +90,30 @@ public class PlayerManager : MonoBehaviour
 
     public string SendPlayerPosition()
     {
-        string response = "PlayerManager:UpdatePlayerPosition" + clientPlayer.GetID() + ":" +
+        string response = "PlayerManager:UpdatePlayerPosition" + clientPlayer.ID + ":" +
         clientPlayer.GetXPosition().ToString() + ":" +
         clientPlayer.GetYPosition().ToString();
         return response;
     }
 
-    public string SendPlayerPositions()
+    public void SendPlayerPositions()
     {
         string response = "PlayerManager:UpdatePlayerPositions:";
-        foreach (KeyValuePair<int, PlayerController> p in players)
+        foreach (KeyValuePair<int, Player> p in players)
         {
-            response += p.Key + "|" + p.Value.GetXPosition() + "|" + p.Value.GetYPosition() + "/";
+            response += p.Key + "|" + p.Value.GetXPosition() + "|" +
+            p.Value.GetYPosition() + "/";
         }
 
-        return response;
+        UDPHost.instance.SendDataToClients(response);
     }
 
     public static void UpdatePlayerPosition(int id, float x, float y)
     {
         if (!players.ContainsKey(id))
         {
-            Debug.Log("Adding player " + id);
-            CreateNewPlayer(id);
+            Debug.Log($"Adding player with ID {id}");
+            CreateNewPlayer(id, $"Player {id}");
         }
 
         Vector2 currentPosition = players[id].GetPosition();
@@ -135,21 +142,63 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public void BeginSendingHostPositionsToClients() {
+    public void BeginSendingHostPositionsToClients()
+    {
         InvokeRepeating("SendHostPositionsToClients", 0f, 0.1f);
     }
 
-    private void SendHostPositionsToClients() {
+    private void SendHostPositionsToClients()
+    {
         // Send player movement data to clients
-        if (UDPHost.instance != null) {
-            UDPHost.instance.SendDataToClients(PlayerManager.instance.SendPlayerPositions());
+        if (UDPHost.instance != null)
+        {
+            SendPlayerPositions();
         }
+    }
+
+    // Asks the host to send the usernames of all players to the client
+    public static void RequestPlayerUsernames()
+    {
+        TCPConnection.instance.SendDataToHost("PlayerManager:SendPlayerUsernames");
+    }
+
+    public static void SendPlayerUsernames()
+    {
+        string response = "PlayerManager:UpdatePlayerUsernames:";
+        foreach (KeyValuePair<int, Player> p in players)
+        {
+            response += p.Key + "|" + p.Value.username + "/";
+        }
+
+        UDPHost.instance.SendDataToClients(response);
+    }
+
+    public static void UpdatePlayerUsernames(string message)
+    {
+        string[] playerData = message.Split('/');
+        for (int i = 0; i < playerData.Length - 1; i++)
+        {
+            string[] currentPlayerData = playerData[i].Split('|');
+            int playerID = int.Parse(currentPlayerData[0]);
+            string username = currentPlayerData[1];
+            if (username == players[playerID].username) continue;
+
+            players[playerID].AssignUsername(username);
+            Debug.Log($"Set player {playerID} to {username}");
+        }
+    }
+
+    public static void UpdatePlayerItems(int playerID, int itemID)
+    {
+        Debug.Log($"Player {playerID} picked up item {itemID}");
+        players[playerID].AddItem(itemID);
+        ItemManager.HideItem(itemID);
     }
 
     public string SendPlayerInput()
     {
         Vector2 Input = clientPlayer.GetInput();
-        string response = "PlayerManager:ReceivePlayerInput:" + clientPlayer.GetID() + ":" +
+        string response = "PlayerManager:ReceivePlayerInput:" + clientPlayer.ID + ":" +
         Input.x + ":" + Input.y;
         return response;
     }
