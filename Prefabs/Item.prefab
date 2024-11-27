@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 6933819922364958782}
   - component: {fileID: 7720047723060785853}
   - component: {fileID: 6503350443343602559}
-  - component: {fileID: -5252280211074734804}
+  - component: {fileID: 3216704220418910689}
   m_Layer: 0
   m_Name: Item
   m_TagString: Item
@@ -150,7 +150,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d9736fc0744b064c9b5f64524e2644f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb2d: {fileID: -5252280211074734804}
+  rb2d: {fileID: 3216704220418910689}
   itemObject: {fileID: 8062582853628198269}
 --- !u!60 &6503350443343602559
 PolygonCollider2D:
@@ -201,7 +201,7 @@ PolygonCollider2D:
       - {x: 0, y: -0.25}
       - {x: 0.5, y: 0}
   m_UseDelaunayMesh: 0
---- !u!50 &-5252280211074734804
+--- !u!50 &3216704220418910689
 Rigidbody2D:
   serializedVersion: 4
   m_ObjectHideFlags: 0

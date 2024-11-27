@@ -18,10 +18,7 @@ public class NetworkController : MonoBehaviour
     UDPHost udpHost;
     TCPConnection tcpClient;
     UDPConnection udpClient;
-    private string username;
-
-    [SerializeField]
-    private GameObject mazeGeneratorObject;
+    public String username {get; private set;}
 
     // Singleton
     void Awake()
@@ -98,34 +95,17 @@ public class NetworkController : MonoBehaviour
     {
         if (isHost)
         {
-            MapGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MapGenerator>();
-            
-            // Create host's player object
-            PlayerManager.CreateNewPlayer(ID, username);
-
-            // Create map
-            mazeGenerator.Instantiate();
-
             // Start sending player positions to clients
             PlayerManager.instance.BeginSendingHostPositionsToClients();
-
-            Debug.Log("The game has begun!");
         }
         else
         {
-            // Create maze
-            MapGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MapGenerator>();
-            mazeGenerator.Instantiate();
-
-            // Create player
-            PlayerManager.CreateNewPlayer(ID, username);
-
             // Ask host to create player and for usernames
             TCPConnection.instance.SendDataToHost($"PlayerManager:CreateNewPlayer:{ID}:{username}");
             PlayerManager.RequestPlayerUsernames();
-
-            Debug.Log("The game has begun!");
         }
+
+        SystemManager.instance.StartGame(username);
     }
 
     void FixedUpdate()
@@ -143,9 +123,8 @@ public class NetworkController : MonoBehaviour
     // Run HandleData every game frame to ensure that commands are synchronized
     // with the game itself
     // HandleData takes a message and converts it into a static method.
-    protected void HandleData(string message)
+    void HandleData(string message)
     {
-
         // Parse incoming data, send to relevant managers
         string[] data = message.Split(':');
         if (data.Length < 2)

@@ -9,6 +9,7 @@ public class ItemManager : MonoBehaviour
     private static Item itemTemplate;
     public static Dictionary<int, Item> items = new Dictionary<int, Item>();
     public static ItemManager instance;
+    private static int nextItemID = 0;
 
     /*
     Singleton Pattern: Make sure there's only one PlayerManager
@@ -27,22 +28,14 @@ public class ItemManager : MonoBehaviour
         itemTemplate = itemPrefab.GetComponent<Item>();
     }
 
-    public static void CreateNewItem(int id, Vector2 spawnPosition)
+    public static void CreateNewItem(Vector2 spawnPosition)
     {
-        if (items.ContainsKey(id))
-        {
-            // Item already exists
-            Debug.Log($"An item with ID {id} already exists.");
-            return;
-        }
-        else
-        {
-            // Instantiate a new player
-            Item item = Instantiate(itemTemplate, spawnPosition, Quaternion.identity);
-            item.AssignID(id);
-            items.Add(id, item);
-            Debug.Log($"Create item object with ID of {id}");
-        }
+        Quaternion rotation = Quaternion.Euler(0, 0, Random.Range(0.0f, 360.0f));
+        Item item = Instantiate(itemTemplate, spawnPosition, rotation);
+        item.AssignID(nextItemID);
+        items.Add(nextItemID, item);
+        Debug.Log($"Create item object with ID of {nextItemID}");
+        nextItemID++;
     }
 
     public string SendItemPositions()
@@ -61,9 +54,9 @@ public class ItemManager : MonoBehaviour
         if (!items.ContainsKey(id))
         {
             Debug.Log("Adding item " + id);
-            CreateNewItem(id, pos);
+            CreateNewItem(pos);
         }
-        
+
         items[id].SetPosition(pos);
     }
 
@@ -79,7 +72,8 @@ public class ItemManager : MonoBehaviour
         }
     }
 
-    public static void HideItem(int itemID) {
+    public static void HideItem(int itemID)
+    {
         items[itemID].HideItem();
     }
 }

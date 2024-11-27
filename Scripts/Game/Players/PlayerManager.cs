@@ -197,7 +197,6 @@ public class PlayerManager : MonoBehaviour
 
     public static void ReturnPlayerItems(int playerID)
     {
-        Debug.Log($"Player {playerID} returned their items");
         players[playerID].ReturnItems();
     }
 
@@ -213,6 +212,22 @@ public class PlayerManager : MonoBehaviour
     {
         Vector2 Input = new Vector2(x, y).normalized;
         players[id].SetInput(Input);
+    }
+
+    public Player GetHighestScoringPlayer()
+    {
+        double highestBalance = int.MinValue;
+        int id = 0;
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (players[i].balance > highestBalance)
+            {
+                highestBalance = players[i].balance;
+                id = i;
+            }
+        }
+
+        return players[id];
     }
 
     public static Boolean IsPlayerInitialized()

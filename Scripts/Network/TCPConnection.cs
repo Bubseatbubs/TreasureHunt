@@ -88,7 +88,7 @@ public class TCPConnection : MonoBehaviour
         } 
 
         string receivedData = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
-        Debug.Log("Received from Host" + receivedData);
+        Debug.Log($"Received from Host {receivedData}");
 
         // Restart host thread
         hostThread = new Thread(() => HandleHost(hostStream, 0));

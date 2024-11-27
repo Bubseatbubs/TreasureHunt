@@ -14,7 +14,8 @@ public class Item : MonoBehaviour
     private GameObject itemObject;
 
     // Start is called before the first frame update
-    void Start() {
+    void Start()
+    {
         // Add random attributes to the item
         value = Random.Range(10, 50);
         weight = value * Random.Range(0.9f, 1.1f);
@@ -50,5 +51,14 @@ public class Item : MonoBehaviour
     {
         pickedUp = true;
         itemObject.SetActive(false);
+    }
+
+    void OnCollisionStay2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            Debug.Log($"Item {ID} is touching a wall");
+            rb2d.position += new Vector2(rb2d.position.x + 0.25f, rb2d.position.y);
+        }
     }
 }

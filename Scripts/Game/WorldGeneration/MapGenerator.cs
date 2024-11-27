@@ -102,6 +102,10 @@ public class MapGenerator : MonoBehaviour
             float realX = ConvertXGridToLocation(originX) + 2.5f;
             float realY = ConvertYGridToLocation(originY) + 2.5f;
             Instantiate(_mazeRoomPrefab, new Vector2(realX, realY), Quaternion.identity);
+
+            // Create items in the room
+            CreateItem(originX + 1, originY, 2);
+            CreateItem(originX, originY + 1, 2);
         }
     }
 
@@ -109,16 +113,22 @@ public class MapGenerator : MonoBehaviour
     {
         for (int i = 0; i < numberOfItems; i++)
         {
-            // Find a random spot to place an item
             int originX = Random.Range(0, _mazeWidth);
             int originY = Random.Range(0, _mazeDepth);
 
             // Create item
             Debug.Log($"Spawning item {i} at {originX} {originY}");
-
-            // Create room
-            ItemManager.CreateNewItem(i, GetCenterOfCell(originX, originY));
+            CreateItem(originX, originY, 3);
         }
+    }
+
+    private void CreateItem(int x, int y, float offset)
+    {
+        // Find a random spot to place an item
+        Vector2 spawn = GetCenterOfCell(x, y);
+        spawn.x += Random.Range(-offset, offset);
+        spawn.y += Random.Range(-offset, offset);
+        ItemManager.CreateNewItem(spawn);
     }
 
     private MazeCell GetNextUnvisitedCell(MazeCell currentCell)
@@ -247,7 +257,8 @@ public class MapGenerator : MonoBehaviour
         return y * _scale - y_displacement;
     }
 
-    private Vector2 GetCenterOfCell(int GridX, int GridY) {
+    private Vector2 GetCenterOfCell(int GridX, int GridY)
+    {
         float x = ConvertXGridToLocation(GridX) + 0.25f;
         float y = ConvertYGridToLocation(GridY) + 0.25f;
 

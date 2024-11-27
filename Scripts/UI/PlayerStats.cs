@@ -22,7 +22,7 @@ public class PlayerStats : MonoBehaviour
         UpdateStats(0f, 0, 0, 0);
     }
 
-    public void UpdateStats(float weight, int itemValue, int inventoryCount, int balance)
+    public void UpdateStats(float weight, double itemValue, int inventoryCount, double balance)
     {
         weightText.text = $"Total Weight: {weight} LB";
         itemValueText.text = $"Total Value Of Items: ${itemValue}";

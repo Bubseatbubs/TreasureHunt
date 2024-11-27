@@ -20,8 +20,10 @@ public class Player : MonoBehaviour
     public int inventoryCount { get; private set; }
     private Vector2 PlayerInput;
     private static Dictionary<int, Item> inventory = new Dictionary<int, Item>();
-    public int carriedValue { get; private set; }
-    public int balance { get; private set; }
+    public double realCarriedValue { get; private set; }
+    public double carriedValue { get; private set; }
+    public double carriedValueMultiplier { get; private set; }
+    public double balance { get; private set; }
     private PlayerStats statWindow;
 
     [SerializeField]
@@ -124,7 +126,6 @@ public class Player : MonoBehaviour
             {
                 GameObject itemObject = collision.gameObject;
                 Item item = itemObject.GetComponent<Item>();
-                Debug.Log($"Player {ID} has picked up item {item.ID}");
                 SendItemPickupToClients(item.ID);
                 PlayerManager.UpdatePlayerItems(ID, item.ID);
             }
@@ -143,7 +144,6 @@ public class Player : MonoBehaviour
         {
             if (collision.gameObject.CompareTag("SpawnArea") && inventoryCount > 0)
             {
-                Debug.Log($"Player {ID} returned to spawn. Cashing in items!");
                 SendItemReturnToClients();
                 PlayerManager.ReturnPlayerItems(ID);
             }
@@ -156,15 +156,19 @@ public class Player : MonoBehaviour
         TCPHost.instance.SendDataToClients($"PlayerManager:ReturnPlayerItems:{ID}");
     }
 
-    public void AddItem(int itemID) {
+    public void AddItem(int itemID)
+    {
         Item item;
-        if (!ItemManager.items.TryGetValue(itemID, out item)) {
+        if (!ItemManager.items.TryGetValue(itemID, out item))
+        {
             Debug.Log($"Item {itemID} doesn't exist!");
         }
 
         // Update player info
         inventory.Add(itemID, item);
-        carriedValue += item.value;
+        realCarriedValue += item.value;
+        carriedValueMultiplier += 0.1f;
+        carriedValue = Math.Round(realCarriedValue * (1 + carriedValueMultiplier), 2);
         weight += item.weight;
         speedMultiplier = Math.Clamp(0.02f * (weight / 5), 0, 0.95f);
         inventoryCount++;
@@ -180,11 +184,24 @@ public class Player : MonoBehaviour
     {
         // Update player info
         balance += carriedValue;
-        carriedValue = 0;
+        carriedValue = 0.0;
+        realCarriedValue = 0.0;
         weight = 0f;
+        carriedValueMultiplier = 0.0;
         speedMultiplier = 0f;
+        int beforeInventoryCount = inventoryCount;
         inventoryCount = 0;
         inventory.Clear();
+
+        if (beforeInventoryCount == 1)
+        {
+            Debug.Log($"{username} cashed in {beforeInventoryCount} item and now has a balance of ${balance}!");
+        }
+        else
+        {
+            Debug.Log($"{username} cashed in {beforeInventoryCount} items and now has a balance of ${balance}!");
+        }
+
 
         // Update UI
         if (NetworkController.ID == ID)

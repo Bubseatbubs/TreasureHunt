@@ -57,7 +57,6 @@ public class RandomSeed : MonoBehaviour
 
     public static void SendSeed()
     {
-        Debug.Log($"Sent the number {instance._seed}");
         TCPHost.instance.SendDataToClients($"{instance._seed}");
     }
 }
