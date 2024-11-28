@@ -59,6 +59,9 @@ public class MazeCell : MonoBehaviour
 
     public void ChangeToCenterCell() {
         ClearAllWalls();
+        connections.Clear();
+        int centerLayer = LayerMask.NameToLayer("Center");
+        gameObject.layer = centerLayer;
         IsCenterCell = true;
     }
 

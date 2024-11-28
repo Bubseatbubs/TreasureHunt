@@ -28,7 +28,7 @@ public class MapGenerator : MonoBehaviour
     private int _centerSize;
 
     [SerializeField]
-    private LayerMask doNotSpawnOn;
+    private LayerMask doNotSpawnItemsOn;
 
     public static MapGenerator instance;
 
@@ -65,7 +65,8 @@ public class MapGenerator : MonoBehaviour
         ClearCenter(); // Clear out the center where players spawn in
         CreateRooms(32, 2); // Spawn in rooms
         CreateItems(100);
-        DrawConnections();
+
+        DrawConnections(); // For debug visualization
     }
 
     private void GenerateMaze(MazeCell previousCell, MazeCell currentCell)
@@ -157,7 +158,7 @@ public class MapGenerator : MonoBehaviour
         {
             spawnPosition.x = Random.Range(-ConvertXGridToLocation(_mazeWidth), ConvertXGridToLocation(_mazeWidth));
             spawnPosition.y = Random.Range(-ConvertYGridToLocation(_mazeDepth), ConvertYGridToLocation(_mazeDepth));
-            Collider2D[] colliders = Physics2D.OverlapCircleAll(spawnPosition, 0.1f, doNotSpawnOn);
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(spawnPosition, 0.1f, doNotSpawnItemsOn);
             if (colliders.Length == 0)
             {
                 isSpawnPosValid = true;
@@ -313,12 +314,12 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    private int ConvertXLocationToGrid(int x)
+    public int ConvertXLocationToGrid(int x)
     {
         return (x + x_displacement) / _scale;
     }
 
-    private int ConvertYLocationToGrid(int y)
+    public int ConvertYLocationToGrid(int y)
     {
         return (y + y_displacement) / _scale;
     }
@@ -343,6 +344,11 @@ public class MapGenerator : MonoBehaviour
     {
         int x = Random.Range(0, _mazeWidth - 1);
         int y = Random.Range(0, _mazeDepth - 1);
+        return _mazeGrid[x, y];
+    }
+
+    public MazeCell GetMazeCell(int x, int y)
+    {
         return _mazeGrid[x, y];
     }
 }
