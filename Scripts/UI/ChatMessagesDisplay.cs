@@ -1,13 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
+using System;
 
 public class ChatMessagesDisplay : MonoBehaviour
 {
     [SerializeField]
     TextMeshProUGUI chatText;
     public static ChatMessagesDisplay instance;
+
+    [SerializeField]
+    private RectTransform chatBox;
+
+    [SerializeField]
+    private Scrollbar scrollbar;
 
     /*
     Singleton Pattern: Make sure there's only one Chat Window
@@ -27,6 +35,7 @@ public class ChatMessagesDisplay : MonoBehaviour
 
     public void UpdateChatMessages(string newChat)
     {
-        chatText.text = newChat;
+        chatText.text = newChat + "\n\n";
+        scrollbar.value = 0.0f;
     }
 }

@@ -15,16 +15,11 @@ public class MainThreadDispatcher : MonoBehaviour
     private static readonly Queue<Action> executionQueue = new Queue<Action>();
 
     // Singleton instance of the dispatcher
-    private static MainThreadDispatcher instance;
+    public static MainThreadDispatcher instance;
 
     void Awake()
     {
         instance = this;
-    }
-    
-    public static MainThreadDispatcher Instance()
-    {
-        return instance;
     }
 
     // Enqueue an action to be executed on the main thread

@@ -51,6 +51,13 @@ public class TCPConnection : MonoBehaviour
         hostThread.Start();
     }
 
+    public void DisconnectFromHost()
+    {
+        SendDataToHost("TCP:Disconnect");
+        host?.Close();
+        hostThread.Abort();
+    }
+
     private void HandleHost(NetworkStream peerStream, int peerID)
     {
         byte[] peerBuffer = new byte[4096];
@@ -98,6 +105,6 @@ public class TCPConnection : MonoBehaviour
 
     private void OnApplicationQuit()
     {
-        host?.Close();
+        DisconnectFromHost();
     }
 }

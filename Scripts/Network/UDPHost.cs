@@ -55,13 +55,20 @@ public class UDPHost : MonoBehaviour
     void OnReceiveData(IAsyncResult result) {
         IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
         byte[] data = udpServer.EndReceive(result, ref clientEndPoint);
-        if (!connectedClients.Contains(clientEndPoint)) {
-            Debug.Log($"New client added: {clientEndPoint}");
-            connectedClients.Add(clientEndPoint);
-        }
 
         string message = Encoding.UTF8.GetString(data);
         // Debug.Log($"Received UDP message: {message}");
+
+        if (message.Equals("UDP:Connect") || !connectedClients.Contains(clientEndPoint)) {
+            Debug.Log($"Added client {clientEndPoint} to endpoint list");
+            connectedClients.Add(clientEndPoint);
+            return;
+        }
+        else if (message.Equals("UDP:Disconnect")) {
+            Debug.Log($"Removing client {clientEndPoint} from endpoint list");
+            RemoveClient(clientEndPoint);
+            return;
+        }
 
         NetworkController.AddData(message);
         SendDataToClients(message);
@@ -75,6 +82,11 @@ public class UDPHost : MonoBehaviour
             udpServer.Send(data, data.Length, client);
             // Debug.Log($"Sent to {client}: {message}");
         }
+    }
+
+    public void RemoveClient(IPEndPoint clientEndPoint)
+    {
+        connectedClients.Remove(clientEndPoint);
     }
 
     void OnApplicationQuit()

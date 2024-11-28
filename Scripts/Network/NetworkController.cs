@@ -177,4 +177,12 @@ public class NetworkController : MonoBehaviour
     {
         commands.Enqueue(message);
     }
+
+    public static void RemovePlayer(int ID)
+    {
+        PlayerManager.instance.RemovePlayer(ID);
+        if (isHost) {
+            TCPHost.instance.SendDataToClients($"NetworkController:RemovePlayer:{ID}");
+        }
+    }
 }

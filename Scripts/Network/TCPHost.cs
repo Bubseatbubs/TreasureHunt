@@ -73,6 +73,13 @@ public class TCPHost : MonoBehaviour
         }
     }
 
+    public void RemoveClient(int ID)
+    {
+        connectedPeers.Remove(ID);
+        streams.Remove(ID);
+        Debug.Log($"Removed client {ID}'s TCP connection");
+    }
+
     private void AcceptClientConnections()
     {
         Debug.Log("Preparing to accept new connections");
@@ -92,7 +99,7 @@ public class TCPHost : MonoBehaviour
 
         // Assign an ID to the client
         nextID++;
-        MainThreadDispatcher.Instance().Enqueue(() =>
+        MainThreadDispatcher.instance.Enqueue(() =>
         InitializeClientID(peerStream));
         Debug.Log($"Wrote client ID {nextID}");
 
@@ -115,17 +122,32 @@ public class TCPHost : MonoBehaviour
     private void HandlePeer(NetworkStream peerStream, int peerID)
     {
         byte[] peerBuffer = new byte[4096];
-        Debug.Log("Awaiting messages from peer");
-        while (true)
+        Debug.Log($"Awaiting messages from peer {peerID}");
+        try
         {
-            int bytesRead = peerStream.Read(peerBuffer, 0, peerBuffer.Length);
-            if (bytesRead == 0) break;
+            while (true)
+            {
+                int bytesRead = peerStream.Read(peerBuffer, 0, peerBuffer.Length);
+                if (bytesRead == 0) break;
 
-            string message = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
-            // Debug.Log($"Received from peer {peerID}: " + message);
+                string message = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
+                // Debug.Log($"Received from peer {peerID}: " + message);
 
-            NetworkController.AddData(message);
+                if (message.Equals("TCP:Disconnect")) {
+                    throw new Exception();
+                }
+
+                NetworkController.AddData(message);
+            }
         }
+        catch (Exception e)
+        {
+            // If client disconnects or some other error occurs while reading
+            Debug.Log($"Client {peerID} disconnected because of: {e.Message}");
+            RemoveClient(peerID);
+            NetworkController.RemovePlayer(peerID);
+        }
+
     }
 
     private void OnApplicationQuit()

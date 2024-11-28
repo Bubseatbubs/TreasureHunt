@@ -209,4 +209,9 @@ public class Player : MonoBehaviour
             statWindow.UpdateStats(weight, carriedValue, inventoryCount, balance);
         }
     }
+
+    public void RemovePlayer()
+    {
+        Destroy(gameObject);
+    }
 }

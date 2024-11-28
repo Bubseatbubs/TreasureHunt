@@ -29,8 +29,14 @@ public class UDPConnection : MonoBehaviour
         serverEndPoint = new IPEndPoint(IPAddress.Parse(hostIP), port);
 
         Debug.Log($"Connected to UDP port: {hostIP}");
-        SendDataToHost("Connected");
+        SendDataToHost("UDP:Connect");
         client.BeginReceive(OnReceiveData, null);
+    }
+
+    public void DisconnectFromHost()
+    {
+        SendDataToHost("UDP:Disconnect");
+        client?.Close();
     }
 
     public void SendDataToHost(string message)
@@ -54,6 +60,6 @@ public class UDPConnection : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        client.Close();
+        DisconnectFromHost();
     }
 }

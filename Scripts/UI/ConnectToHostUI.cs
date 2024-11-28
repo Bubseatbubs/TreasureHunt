@@ -39,6 +39,11 @@ public class ConnectToHostUI : MonoBehaviour
         string IPAddress = convertFieldToString(IPAddressInput);
         string username = convertFieldToString(UsernameInput);
 
+        if (!IsValidUsername(username)) {
+            Debug.Log("Invalid username typed in.");
+            return;
+        }
+
         int port;
         if (int.TryParse(convertFieldToString(PortInput), out port))
         {
@@ -60,5 +65,22 @@ public class ConnectToHostUI : MonoBehaviour
     {
         string text = field.text;
         return text;
+    }
+
+    private static bool IsValidUsername(string s)
+    {
+        if (s.Length > 7) {
+            return false;
+        }
+
+        foreach (var c in s)
+        {
+            if (!char.IsLetterOrDigit(c))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

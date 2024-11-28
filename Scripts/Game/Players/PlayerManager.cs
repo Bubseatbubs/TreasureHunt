@@ -181,7 +181,6 @@ public class PlayerManager : MonoBehaviour
             string[] currentPlayerData = playerData[i].Split('|');
             int playerID = int.Parse(currentPlayerData[0]);
             string username = currentPlayerData[1];
-            if (username == players[playerID].username) continue;
 
             players[playerID].AssignUsername(username);
             Debug.Log($"Set player {playerID} to {username}");
@@ -228,6 +227,14 @@ public class PlayerManager : MonoBehaviour
         }
 
         return players[id];
+    }
+
+    public void RemovePlayer(int ID)
+    {
+        Debug.Log($"Removing player {ID}");
+        Player curPlayer = players[ID];
+        players.Remove(ID);
+        MainThreadDispatcher.instance.Enqueue(() => curPlayer.RemovePlayer());
     }
 
     public static Boolean IsPlayerInitialized()
