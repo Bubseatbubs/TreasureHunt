@@ -45,6 +45,15 @@ public class SystemManager : MonoBehaviour
         timer = 300;
     }
 
+    public void InitializeGame()
+    {
+        chatPanel.SetActive(true);
+        if (!NetworkController.isHost)
+        {
+            ChatManager.instance.SendSystemMessage($"{NetworkController.instance.username} joined the game");
+        }
+    }
+
     public void StartGame(String username)
     {
         gameBegan = true;
@@ -59,7 +68,6 @@ public class SystemManager : MonoBehaviour
         // Show game UI
         timerPanel.SetActive(true);
         playerStatsWindow.SetActive(true);
-        chatPanel.SetActive(true);
         Debug.Log("The game has begun!");
     }
 

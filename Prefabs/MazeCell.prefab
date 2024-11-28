@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5219240388008143354}
   - component: {fileID: 1362534220504437338}
   - component: {fileID: 2410922697940317580}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FrontWall
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -170,7 +170,7 @@ GameObject:
   - component: {fileID: 28421056269588792}
   - component: {fileID: 4677209242595990526}
   - component: {fileID: 6735058950035251341}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: BackWall
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -328,7 +328,7 @@ GameObject:
   - component: {fileID: 8884899448409434572}
   - component: {fileID: 6372511435827507496}
   - component: {fileID: 2775732528790572066}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: LeftWall
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -528,6 +528,7 @@ MonoBehaviour:
   _frontWall: {fileID: 1769763598491227608}
   _backWall: {fileID: 3753030556509116713}
   _unvisitedBlock: {fileID: 6683899205230228727}
+  cellTransform: {fileID: 6249651766015950986}
 --- !u!1 &5917359416716014251
 GameObject:
   m_ObjectHideFlags: 0
@@ -540,7 +541,7 @@ GameObject:
   - component: {fileID: 3540329824717051218}
   - component: {fileID: 415762146036660537}
   - component: {fileID: 3856207401684209281}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: RightWall
   m_TagString: Wall
   m_Icon: {fileID: 0}
@@ -762,7 +763,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

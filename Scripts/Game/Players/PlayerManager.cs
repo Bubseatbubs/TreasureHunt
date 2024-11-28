@@ -182,6 +182,12 @@ public class PlayerManager : MonoBehaviour
             int playerID = int.Parse(currentPlayerData[0]);
             string username = currentPlayerData[1];
 
+            if (!players.ContainsKey(playerID))
+            {
+                Debug.Log($"Adding player with playerID {playerID}");
+                CreateNewPlayer(playerID, $"Player {playerID}");
+            }
+
             players[playerID].AssignUsername(username);
             Debug.Log($"Set player {playerID} to {username}");
         }
@@ -189,7 +195,6 @@ public class PlayerManager : MonoBehaviour
 
     public static void UpdatePlayerItems(int playerID, int itemID)
     {
-        Debug.Log($"Player {playerID} picked up item {itemID}");
         players[playerID].AddItem(itemID);
         ItemManager.HideItem(itemID);
     }
@@ -231,7 +236,11 @@ public class PlayerManager : MonoBehaviour
 
     public void RemovePlayer(int ID)
     {
-        Debug.Log($"Removing player {ID}");
+        string username = players[ID].username;
+        if (NetworkController.isHost) {
+            MainThreadDispatcher.instance.Enqueue(() => ChatManager.instance.SendSystemMessage($"{username} left the game"));
+        }
+        
         Player curPlayer = players[ID];
         players.Remove(ID);
         MainThreadDispatcher.instance.Enqueue(() => curPlayer.RemovePlayer());

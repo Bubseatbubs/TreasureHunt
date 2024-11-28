@@ -24,7 +24,7 @@ public class ChatManager : MonoBehaviour
         instance = this;
     }
 
-    public void AddMessage(string message)
+    public void SendChatMessage(string message)
     {
         if (username == null)
         {
@@ -44,6 +44,20 @@ public class ChatManager : MonoBehaviour
         {
             Debug.Log("Sent as client");
             TCPConnection.instance.SendDataToHost($"ChatManager:CreateMessageInChat:{username} — {message}");
+        }
+    }
+
+    public void SendSystemMessage(string message)
+    {
+        if (NetworkController.isHost)
+        {
+            Debug.Log("Sent as host");
+            CreateMessageInChat($"{message}");
+        }
+        else
+        {
+            Debug.Log("Sent as client");
+            TCPConnection.instance.SendDataToHost($"ChatManager:CreateMessageInChat:{message}");
         }
     }
 

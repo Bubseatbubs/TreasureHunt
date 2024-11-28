@@ -27,6 +27,11 @@ public class MapGenerator : MonoBehaviour
     [SerializeField]
     private int _centerSize;
 
+    [SerializeField]
+    private LayerMask doNotSpawnOn;
+
+    public static MapGenerator instance;
+
     private MazeCell[,] _mazeGrid;
     private static int _seed;
 
@@ -35,6 +40,11 @@ public class MapGenerator : MonoBehaviour
 
     public void Instantiate()
     {
+        if (instance == null)
+        {
+            instance = this;
+        }
+
         _mazeGrid = new MazeCell[_mazeWidth, _mazeDepth];
         x_displacement = (_mazeWidth / 2) * _scale;
         y_displacement = (_mazeDepth / 2) * _scale;
@@ -46,14 +56,16 @@ public class MapGenerator : MonoBehaviour
                 int gridX = ConvertXLocationToGrid(x);
                 int gridY = ConvertXLocationToGrid(y);
                 _mazeGrid[gridX, gridY] = Instantiate(_mazeCellPrefab, new Vector2(x, y), Quaternion.identity);
+                _mazeGrid[gridX, gridY].SetPosition(gridX, gridY);
             }
         }
 
         // Map generation process
         GenerateMaze(null, _mazeGrid[0, 0]); // Make initial maze
         ClearCenter(); // Clear out the center where players spawn in
-        CreateRooms(4, 2); // Spawn in rooms
-        CreateItems(24);
+        CreateRooms(32, 2); // Spawn in rooms
+        CreateItems(100);
+        DrawConnections();
     }
 
     private void GenerateMaze(MazeCell previousCell, MazeCell currentCell)
@@ -77,12 +89,15 @@ public class MapGenerator : MonoBehaviour
     {
         for (int i = 0; i < numberOfRooms; i++)
         {
+            MazeCell[] roomCells = new MazeCell[roomSize * 2];
+            int j = 0;
+
             // Find a random spot to place a room
             int originX = Random.Range(roomSize, _mazeWidth - roomSize);
             int originY = Random.Range(roomSize, _mazeDepth - roomSize);
 
             // If something was already placed there, go to another spot
-            if (_mazeGrid[originX, originY].IsCleared)
+            if (_mazeGrid[originX, originY].IsRoomCell || _mazeGrid[originX, originY].IsCenterCell)
             {
                 i--;
                 continue;
@@ -94,7 +109,18 @@ public class MapGenerator : MonoBehaviour
             {
                 for (int y = originY; y < originY + roomSize; y++)
                 {
-                    _mazeGrid[x, y].ClearAllWalls();
+                    Debug.Log($"Removed maze cell {x}, {y}");
+                    _mazeGrid[x, y].ChangeToRoomCell();
+                    roomCells[j++] = _mazeGrid[x, y];
+                }
+            }
+
+            // Add connections between all the cells of the room
+            foreach (MazeCell cell in roomCells)
+            {
+                for (int k = 0; k < roomCells.Length; k++)
+                {
+                    cell.AddConnection(roomCells[k]);
                 }
             }
 
@@ -102,10 +128,6 @@ public class MapGenerator : MonoBehaviour
             float realX = ConvertXGridToLocation(originX) + 2.5f;
             float realY = ConvertYGridToLocation(originY) + 2.5f;
             Instantiate(_mazeRoomPrefab, new Vector2(realX, realY), Quaternion.identity);
-
-            // Create items in the room
-            CreateItem(originX + 1, originY, 2);
-            CreateItem(originX, originY + 1, 2);
         }
     }
 
@@ -113,22 +135,54 @@ public class MapGenerator : MonoBehaviour
     {
         for (int i = 0; i < numberOfItems; i++)
         {
-            int originX = Random.Range(0, _mazeWidth);
-            int originY = Random.Range(0, _mazeDepth);
-
             // Create item
-            Debug.Log($"Spawning item {i} at {originX} {originY}");
-            CreateItem(originX, originY, 3);
+            CreateItem(GetRandomSpawnPosition());
         }
     }
 
-    private void CreateItem(int x, int y, float offset)
+    private void CreateItem(Vector2 spawnPosition)
     {
-        // Find a random spot to place an item
-        Vector2 spawn = GetCenterOfCell(x, y);
-        spawn.x += Random.Range(-offset, offset);
-        spawn.y += Random.Range(-offset, offset);
-        ItemManager.CreateNewItem(spawn);
+        ItemManager.CreateNewItem(spawnPosition);
+    }
+
+    private Vector2 GetRandomSpawnPosition()
+    {
+        Vector2 spawnPosition = Vector2.zero;
+        bool isSpawnPosValid = false;
+
+        int attemptCount = 0;
+        int maxAttempts = 200;
+
+        while (!isSpawnPosValid && attemptCount < maxAttempts)
+        {
+            spawnPosition.x = Random.Range(-ConvertXGridToLocation(_mazeWidth), ConvertXGridToLocation(_mazeWidth));
+            spawnPosition.y = Random.Range(-ConvertYGridToLocation(_mazeDepth), ConvertYGridToLocation(_mazeDepth));
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(spawnPosition, 0.1f, doNotSpawnOn);
+            if (colliders.Length == 0)
+            {
+                isSpawnPosValid = true;
+            }
+
+            attemptCount++;
+        }
+
+        if (!isSpawnPosValid)
+        {
+            Debug.LogWarning("Couldn't find valid spawn position");
+        }
+
+        return spawnPosition;
+    }
+
+    private void PunchOutWalls(int wallNum)
+    {
+        for (int i = 0; i < wallNum; i++)
+        {
+            int x = Random.Range(1, _mazeWidth - 1);
+            int y = Random.Range(1, _mazeDepth - 1);
+            _mazeGrid[x, y].RemoveRandomWall();
+            Debug.Log($"Removed random wall from maze cell {x}, {y}");
+        }
     }
 
     private MazeCell GetNextUnvisitedCell(MazeCell currentCell)
@@ -192,7 +246,7 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = centerY - _centerSize; y < centerY + _centerSize; y++)
             {
-                _mazeGrid[x, y].ClearAllWalls();
+                _mazeGrid[x, y].ChangeToCenterCell();
             }
         }
     }
@@ -202,6 +256,17 @@ public class MapGenerator : MonoBehaviour
         if (previousCell == null)
         {
             return;
+        }
+
+        // Add connection between both cells
+        if (!previousCell.connections.Contains(currentCell))
+        {
+            previousCell.connections.Add(currentCell);
+        }
+
+        if (!currentCell.connections.Contains(previousCell))
+        {
+            currentCell.connections.Add(previousCell);
         }
 
         // Cell is left, clear from left to right
@@ -237,6 +302,17 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
+    private void DrawConnections()
+    {
+        for (int x = 0; x < _mazeWidth; x++)
+        {
+            for (int y = 0; y < _mazeDepth; y++)
+            {
+                _mazeGrid[x, y].DrawConnections();
+            }
+        }
+    }
+
     private int ConvertXLocationToGrid(int x)
     {
         return (x + x_displacement) / _scale;
@@ -257,11 +333,16 @@ public class MapGenerator : MonoBehaviour
         return y * _scale - y_displacement;
     }
 
-    private Vector2 GetCenterOfCell(int GridX, int GridY)
+    public bool InBounds(int x, int y)
     {
-        float x = ConvertXGridToLocation(GridX) + 0.25f;
-        float y = ConvertYGridToLocation(GridY) + 0.25f;
+        return 0 <= x && x < _mazeWidth
+            && 0 <= y && y < _mazeDepth;
+    }
 
-        return new Vector2(x, y);
+    public MazeCell GetRandomMazeCell()
+    {
+        int x = Random.Range(0, _mazeWidth - 1);
+        int y = Random.Range(0, _mazeDepth - 1);
+        return _mazeGrid[x, y];
     }
 }

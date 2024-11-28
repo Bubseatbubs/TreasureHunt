@@ -24,8 +24,8 @@ public class PlayerStats : MonoBehaviour
 
     public void UpdateStats(float weight, double itemValue, int inventoryCount, double balance)
     {
-        weightText.text = $"Total Weight: {weight} LB";
-        itemValueText.text = $"Total Value Of Items: ${itemValue}";
+        weightText.text = $"Weight: {weight} LB";
+        itemValueText.text = $"Value Of Items: ${itemValue}";
         inventoryCountText.text = $"Items in Inventory: {inventoryCount}";
         balanceText.text = $"Balance: ${balance}";
     }

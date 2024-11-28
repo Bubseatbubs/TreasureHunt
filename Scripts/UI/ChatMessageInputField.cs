@@ -17,7 +17,7 @@ public class ChatMessageInputField : MonoBehaviour
         // Check if Enter was pressed
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
         {
-            ChatManager.instance.AddMessage(text);
+            ChatManager.instance.SendChatMessage(text);
             inputField.text = "";
             inputField.Select();
             inputField.ActivateInputField();

@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,9 +19,17 @@ public class MazeCell : MonoBehaviour
     [SerializeField]
     private GameObject _unvisitedBlock;
 
+     [SerializeField]
+    private Transform cellTransform;
+
     public bool IsVisited { get; private set; }
 
     public bool IsCleared { get; private set; }
+    public bool IsRoomCell { get; private set; }
+    public bool IsCenterCell { get; private set; }
+    public float x { get; private set; }
+    public float y { get; private set; }
+    public HashSet<MazeCell> connections = new HashSet<MazeCell>();
 
     public void Visit() {
         IsVisited = true;
@@ -45,10 +52,53 @@ public class MazeCell : MonoBehaviour
         _backWall.SetActive(false);
     }
 
-    public void ClearAllWalls() {
+    public void ChangeToRoomCell() {
+        ClearAllWalls();
+        IsRoomCell = true;
+    }
+
+    public void ChangeToCenterCell() {
+        ClearAllWalls();
+        IsCenterCell = true;
+    }
+
+    private void ClearAllWalls() {
         ClearLeftWall();
         ClearRightWall();
         ClearFrontWall();
         ClearBackWall();
+    }
+
+    public void RemoveRandomWall()
+    {
+        int wall = Random.Range(0, 3);
+        if (wall == 0) ClearLeftWall();
+        else if (wall == 1) ClearRightWall();
+        else if (wall == 2) ClearFrontWall();
+        else if (wall == 3) ClearBackWall();
+    }
+
+    public Vector2 GetWorldPosition()
+    {
+        return cellTransform.position;
+    }
+
+    public void AddConnection(MazeCell cell)
+    {
+        connections.Add(cell);
+    }
+
+    public void DrawConnections()
+    {
+        foreach (MazeCell connection in connections)
+        {
+            Debug.DrawLine(GetWorldPosition(), connection.GetWorldPosition(), Color.red, 100f);
+        }
+    }
+
+    public void SetPosition(int x, int y)
+    {
+        this.x = x;
+        this.y = y;
     }
 }

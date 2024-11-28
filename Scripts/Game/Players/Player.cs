@@ -167,10 +167,10 @@ public class Player : MonoBehaviour
         // Update player info
         inventory.Add(itemID, item);
         realCarriedValue += item.value;
-        carriedValueMultiplier += 0.1f;
+        carriedValueMultiplier += 0.15f;
         carriedValue = Math.Round(realCarriedValue * (1 + carriedValueMultiplier), 2);
         weight += item.weight;
-        speedMultiplier = Math.Clamp(0.02f * (weight / 5), 0, 0.95f);
+        speedMultiplier = Math.Clamp(0.01f * (weight / 5), 0, 0.95f);
         inventoryCount++;
 
         // Update UI
@@ -193,13 +193,11 @@ public class Player : MonoBehaviour
         inventoryCount = 0;
         inventory.Clear();
 
-        if (beforeInventoryCount == 1)
+        string itemOrItems = (beforeInventoryCount == 1) ? "item" : "items";
+
+        if (NetworkController.isHost)
         {
-            Debug.Log($"{username} cashed in {beforeInventoryCount} item and now has a balance of ${balance}!");
-        }
-        else
-        {
-            Debug.Log($"{username} cashed in {beforeInventoryCount} items and now has a balance of ${balance}!");
+            ChatManager.instance.SendSystemMessage($"{username} cashed in {beforeInventoryCount} {itemOrItems} and now has a balance of ${balance}!");
         }
 
 

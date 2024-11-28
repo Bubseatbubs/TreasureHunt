@@ -60,6 +60,7 @@ public class NetworkController : MonoBehaviour
         username = name;
 
         Debug.Log("Hosted game!");
+        SystemManager.instance.InitializeGame();
     }
 
     /* 
@@ -89,6 +90,7 @@ public class NetworkController : MonoBehaviour
         username = name;
 
         Debug.Log($"Connected to {hostIP}:{port}");
+        SystemManager.instance.InitializeGame();
     }
 
     public void StartGame()

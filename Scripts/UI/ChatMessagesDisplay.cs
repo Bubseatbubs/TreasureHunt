@@ -17,6 +17,8 @@ public class ChatMessagesDisplay : MonoBehaviour
     [SerializeField]
     private Scrollbar scrollbar;
 
+    
+
     /*
     Singleton Pattern: Make sure there's only one Chat Window
     */
@@ -36,6 +38,21 @@ public class ChatMessagesDisplay : MonoBehaviour
     public void UpdateChatMessages(string newChat)
     {
         chatText.text = newChat + "\n\n";
-        scrollbar.value = 0.0f;
+    }
+
+    public void ResetScrollbar()
+    {
+        StartCoroutine(ResetScrollbarCoroutine());
+    }
+
+    IEnumerator ResetScrollbarCoroutine()
+    {
+        yield return new WaitForEndOfFrame();
+        
+        // Set the scrollbar value
+        if (scrollbar != null)
+        {
+            scrollbar.value = 0.0f;
+        }
     }
 }

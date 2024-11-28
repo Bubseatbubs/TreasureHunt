@@ -143,7 +143,7 @@ public class TCPHost : MonoBehaviour
         catch (Exception e)
         {
             // If client disconnects or some other error occurs while reading
-            Debug.Log($"Client {peerID} disconnected because of: {e.Message}");
+            Debug.Log($"Client {peerID} disconnected because of: \"{e.Message}\"");
             RemoveClient(peerID);
             NetworkController.RemovePlayer(peerID);
         }
@@ -152,6 +152,7 @@ public class TCPHost : MonoBehaviour
 
     private void OnApplicationQuit()
     {
+        listenerThread.Abort();
         listener?.Stop();
     }
 }
