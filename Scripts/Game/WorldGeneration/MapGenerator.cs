@@ -63,8 +63,9 @@ public class MapGenerator : MonoBehaviour
         // Map generation process
         GenerateMaze(null, _mazeGrid[0, 0]); // Make initial maze
         ClearCenter(); // Clear out the center where players spawn in
-        CreateRooms(32, 2); // Spawn in rooms
-        CreateItems(100);
+        CreateRooms(48, 2); // Spawn in rooms
+        ItemManager.instance.CreateItems(100);
+        EnemyManager.instance.CreateEnemies(8);
 
         DrawConnections(); // For debug visualization
     }
@@ -132,21 +133,7 @@ public class MapGenerator : MonoBehaviour
         }
     }
 
-    private void CreateItems(int numberOfItems)
-    {
-        for (int i = 0; i < numberOfItems; i++)
-        {
-            // Create item
-            CreateItem(GetRandomSpawnPosition());
-        }
-    }
-
-    private void CreateItem(Vector2 spawnPosition)
-    {
-        ItemManager.CreateNewItem(spawnPosition);
-    }
-
-    private Vector2 GetRandomSpawnPosition()
+    public Vector2 GetRandomSpawnPosition()
     {
         Vector2 spawnPosition = Vector2.zero;
         bool isSpawnPosValid = false;
@@ -173,17 +160,6 @@ public class MapGenerator : MonoBehaviour
         }
 
         return spawnPosition;
-    }
-
-    private void PunchOutWalls(int wallNum)
-    {
-        for (int i = 0; i < wallNum; i++)
-        {
-            int x = Random.Range(1, _mazeWidth - 1);
-            int y = Random.Range(1, _mazeDepth - 1);
-            _mazeGrid[x, y].RemoveRandomWall();
-            Debug.Log($"Removed random wall from maze cell {x}, {y}");
-        }
     }
 
     private MazeCell GetNextUnvisitedCell(MazeCell currentCell)
@@ -240,6 +216,8 @@ public class MapGenerator : MonoBehaviour
 
     private void ClearCenter()
     {
+        int j = 0;
+        MazeCell[] centerCells = new MazeCell[_centerSize * 8];
         int centerX = _mazeWidth / 2;
         int centerY = _mazeDepth / 2;
 
@@ -247,9 +225,20 @@ public class MapGenerator : MonoBehaviour
         {
             for (int y = centerY - _centerSize; y < centerY + _centerSize; y++)
             {
+                Debug.Log(j);
                 _mazeGrid[x, y].ChangeToCenterCell();
+                centerCells[j++] = _mazeGrid[x, y];
             }
         }
+
+        // Add connections between all the cells in the center
+            foreach (MazeCell cell in centerCells)
+            {
+                for (int k = 0; k < centerCells.Length; k++)
+                {
+                    cell.AddConnection(centerCells[k]);
+                }
+            }
     }
 
     private void ClearWalls(MazeCell previousCell, MazeCell currentCell)

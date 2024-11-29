@@ -19,8 +19,11 @@ public class MazeCell : MonoBehaviour
     [SerializeField]
     private GameObject _unvisitedBlock;
 
-     [SerializeField]
+    [SerializeField]
     private Transform cellTransform;
+
+    [SerializeField]
+    private GameObject cellBackground;
 
     public bool IsVisited { get; private set; }
 
@@ -59,9 +62,8 @@ public class MazeCell : MonoBehaviour
 
     public void ChangeToCenterCell() {
         ClearAllWalls();
-        connections.Clear();
         int centerLayer = LayerMask.NameToLayer("Center");
-        gameObject.layer = centerLayer;
+        cellBackground.layer = centerLayer;
         IsCenterCell = true;
     }
 

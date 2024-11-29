@@ -76,4 +76,13 @@ public class ItemManager : MonoBehaviour
     {
         items[itemID].HideItem();
     }
+
+    public void CreateItems(int numberOfItems)
+    {
+        for (int i = 0; i < numberOfItems; i++)
+        {
+            // Create item
+            CreateNewItem(MapGenerator.instance.GetRandomSpawnPosition());
+        }
+    }
 }
