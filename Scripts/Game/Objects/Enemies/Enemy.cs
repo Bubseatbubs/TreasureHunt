@@ -92,7 +92,6 @@ public class Enemy : MonoBehaviour
 
         transform.position = Vector2.MoveTowards(transform.position, moveCommands.Peek(), step);
         rb2d.position = Vector2.MoveTowards(transform.position, moveCommands.Peek(), step);
-        rb2d.rotation += rotationSpeed;
 
         if (Mathf.Approximately(transform.position.x, moveCommands.Peek().x) &&
         Mathf.Approximately(transform.position.y, moveCommands.Peek().y))
@@ -105,7 +104,8 @@ public class Enemy : MonoBehaviour
     {
         float step = speed * 2 * Time.deltaTime;
         Vector2 closestPlayerPosition;
-        try {
+        try
+        {
             closestPlayerPosition = GetClosestPlayer(12f).position;
         }
         catch (NullReferenceException)
@@ -113,7 +113,7 @@ public class Enemy : MonoBehaviour
             closestPlayerPosition = transform.position;
         }
 
-        Vector2 direction = (closestPlayerPosition - (Vector2) transform.position).normalized;
+        Vector2 direction = (closestPlayerPosition - (Vector2)transform.position).normalized;
         rb2d.rotation += rotationSpeed * 5;
 
         rb2d.velocity = direction * speed * 2;
@@ -174,7 +174,8 @@ public class Enemy : MonoBehaviour
         {
             return moveCommands.Peek();
         }
-        else {
+        else
+        {
             return transform.position;
         }
     }
@@ -209,6 +210,14 @@ public class Enemy : MonoBehaviour
         if (collision.gameObject.CompareTag("Cell"))
         {
             lastCellEntered = collision.gameObject.GetComponent<MazeCell>();
+        }
+        else if (isAngry && collision.gameObject.CompareTag("SpawnArea") && NetworkController.isHost)
+        {
+            interval = -checkTimerInterval * 50;
+            isAngry = false;
+            TCPHost.instance.SendDataToClients($"EnemyManager:RestartEnemyMoveJourney:{ID}");
+            MoveToNewPositionInMaze();
+            EnemyManager.instance.SendEnemyStates();
         }
     }
 

@@ -90,13 +90,11 @@ public class EnemyManager : MonoBehaviour
         enemies[id].isAngry = isAngry;
         if (enemies[id].GetNextCommand() != nextCommand)
         {
-            Debug.Log($"updated enemy {id} move position to {nextCommand}");
             enemies[id].SetNextCommand(nextCommand);
         }
 
         if (enemies[id].GetVelocity() != curVelocity)
         {
-            Debug.Log($"updated enemy {id} velocity to {nextCommand}");
             enemies[id].SetVelocity(curVelocity);
         }
     }
