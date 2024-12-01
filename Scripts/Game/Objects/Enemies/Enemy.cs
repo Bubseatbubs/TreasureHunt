@@ -118,7 +118,7 @@ public class Enemy : MonoBehaviour
         Vector2 direction = (closestPlayerPosition - (Vector2)transform.position).normalized;
         rb2d.rotation += rotationSpeed * 5;
 
-        rb2d.velocity = direction * speed * 2;
+        rb2d.velocity = direction * speed * 1.5f;
     }
 
     Transform GetClosestPlayer(float radius)

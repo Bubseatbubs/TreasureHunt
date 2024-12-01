@@ -174,7 +174,7 @@ public class PlayerManager : MonoBehaviour
             response += p.Key + "|" + p.Value.username + "/";
         }
 
-        UDPHost.instance.SendDataToClients(response);
+        TCPHost.instance.SendDataToClients(response);
     }
 
     public static void UpdatePlayerUsernames(string message)

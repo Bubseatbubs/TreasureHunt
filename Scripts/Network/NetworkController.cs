@@ -108,6 +108,7 @@ public class NetworkController : MonoBehaviour
             // Start sending player positions to clients
             PlayerManager.instance.BeginSendingHostPositionsToClients();
             EnemyManager.instance.BeginSendingHostPositionsToClients();
+            ItemManager.instance.BeginSendingHostPositionsToClients();
         }
         else
         {
