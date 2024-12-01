@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -16,6 +17,9 @@ public class PlayerManager : MonoBehaviour
     private static Player clientPlayer;
     Vector2 Input;
     Vector2 LastInput;
+
+    [SerializeField]
+    private LayerMask playersCanPickUpThisLayer;
 
     /*
     Singleton Pattern: Make sure there's only one PlayerManager
@@ -193,10 +197,59 @@ public class PlayerManager : MonoBehaviour
         }
     }
 
-    public static void UpdatePlayerItems(int playerID, int itemID)
+    public static void CheckForItemPickup(int playerID)
+    {
+        Vector2 playerPos = players[playerID].GetPosition();
+        Item itemToPickup = GetClosestItem(playerPos, 1.5f);
+        if (itemToPickup == null)
+        {
+            Debug.Log($"No items nearby for player {playerID} to pickup!");
+            return;
+        }
+
+        // Host
+        int itemID = itemToPickup.ID;
+        UpdateItemPickup(playerID, itemID);
+        TCPHost.instance.SendDataToClients($"PlayerManager:UpdateItemPickup:{playerID}:{itemID}");
+    }
+
+    public static void UpdateItemPickup(int playerID, int itemID)
     {
         players[playerID].AddItem(itemID);
         ItemManager.HideItem(itemID);
+    }
+
+    static Item GetClosestItem(Vector2 playerPos, float radius)
+    {
+        Item closestItem = null;
+        Collider2D[] items = Physics2D.OverlapCircleAll(playerPos, radius, instance.playersCanPickUpThisLayer);
+        if (items.Length == 0)
+        {
+            return closestItem;
+        }
+        
+        float minimumDistance = Mathf.Infinity;
+        Vector2 currentPos = playerPos;
+        foreach (Collider2D item in items)
+        {
+            float distance = Vector2.Distance(item.transform.position, currentPos);
+            if (distance < minimumDistance)
+            {
+                closestItem = item.gameObject.GetComponent<Item>();
+                minimumDistance = distance;
+            }
+        }
+
+        return closestItem;
+    }
+
+    public static void DropPlayerItem(int playerID)
+    {
+        players[playerID].DropItem();
+        if (NetworkController.isHost)
+        {
+            TCPHost.instance.SendDataToClients($"PlayerManager:DropPlayerItem:{playerID}");
+        }
     }
 
     public static void ReturnPlayerItems(int playerID)
@@ -244,6 +297,11 @@ public class PlayerManager : MonoBehaviour
         Player curPlayer = players[ID];
         players.Remove(ID);
         MainThreadDispatcher.instance.Enqueue(() => curPlayer.RemovePlayer());
+    }
+
+    public static void KillPlayer(int ID)
+    {
+        players[ID].Kill();
     }
 
     public static Boolean IsPlayerInitialized()

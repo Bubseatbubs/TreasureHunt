@@ -143,8 +143,8 @@ public class MapGenerator : MonoBehaviour
 
         while (!isSpawnPosValid && attemptCount < maxAttempts)
         {
-            spawnPosition.x = Random.Range(-ConvertXGridToLocation(_mazeWidth), ConvertXGridToLocation(_mazeWidth));
-            spawnPosition.y = Random.Range(-ConvertYGridToLocation(_mazeDepth), ConvertYGridToLocation(_mazeDepth));
+            spawnPosition.x = Random.Range(-ConvertXGridToLocation(_mazeWidth) + 1, ConvertXGridToLocation(_mazeWidth) - 1);
+            spawnPosition.y = Random.Range(-ConvertYGridToLocation(_mazeDepth) + 1, ConvertYGridToLocation(_mazeDepth) - 1);
             Collider2D[] colliders = Physics2D.OverlapCircleAll(spawnPosition, 0.1f, doNotSpawnItemsOn);
             if (colliders.Length == 0)
             {
@@ -311,6 +311,22 @@ public class MapGenerator : MonoBehaviour
     public int ConvertYLocationToGrid(int y)
     {
         return (y + y_displacement) / _scale;
+    }
+
+    public int ConvertXLocationToGrid(float x)
+    {
+        float roundedX = Mathf.Round(x);
+        int newX = (int) x;
+        Debug.Log($"Rounded to: {newX} {roundedX} {x}");
+        return (newX + x_displacement) / _scale;
+    }
+
+    public int ConvertYLocationToGrid(float y)
+    {
+        float roundedY = Mathf.Round(y);
+        int newY = (int) y;
+        Debug.Log($"Rounded to: {newY} {roundedY} {y}");
+        return (newY + y_displacement) / _scale;
     }
 
     private float ConvertXGridToLocation(int x)

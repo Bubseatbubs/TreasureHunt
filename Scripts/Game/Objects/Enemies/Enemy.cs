@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,11 +6,14 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     public Rigidbody2D rb2d;
+
+    [SerializeField]
     Stack<Vector2> moveCommands = new Stack<Vector2>();
     public bool isAngry = false;
     public int ID { get; private set; }
 
-    public float speed = 5.0f;
+    public float speed = 4.0f;
+    float scale = 1f;
     public int checkTimerInterval = 10;
     int interval = 0;
 
@@ -17,16 +21,26 @@ public class Enemy : MonoBehaviour
     private GameObject enemyObject;
 
     [SerializeField]
-    private Transform enemyTransform;
+    private LayerMask targetLayers;
 
     [SerializeField]
-    private LayerMask targetLayers;
+    private float rotationSpeed;
+
+    public MazeCell lastCellEntered;
+
+    void Start()
+    {
+        speed = UnityEngine.Random.Range(3f, 4f);
+        scale = UnityEngine.Random.Range(0.4f, 2f);
+        this.transform.localScale = new Vector3(scale, scale, 1);
+
+        MoveToNewPositionInMaze();
+    }
 
     public void MoveToNewPositionInMaze()
     {
-        int startX = MapGenerator.instance.ConvertXLocationToGrid((int)enemyTransform.position.x);
-        int startY = MapGenerator.instance.ConvertYLocationToGrid((int)enemyTransform.position.y);
-        MazeCell start = MapGenerator.instance.GetMazeCell(startX, startY);
+        Debug.DrawLine(transform.position, (Vector2)transform.position + new Vector2(1, 1), Color.green, 5f);
+        MazeCell start = lastCellEntered;
         bool foundValidCell = false;
         MazeCell destination = start;
         while (!foundValidCell)
@@ -38,7 +52,7 @@ public class Enemy : MonoBehaviour
             }
         }
 
-        moveCommands = Pathfinding.AStarSearch(MapGenerator.instance.GetMazeCell(startX, startY), destination);
+        moveCommands = Pathfinding.AStarSearch(lastCellEntered, destination);
     }
 
     // Update is called once per frame
@@ -57,10 +71,11 @@ public class Enemy : MonoBehaviour
         {
             interval++;
             if (interval < checkTimerInterval) return;
-            Collider2D[] colliders = Physics2D.OverlapCircleAll(enemyTransform.position, 6f, targetLayers);
-            if (colliders.Length > 0)
+            Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, 6f, targetLayers);
+            if (NetworkController.isHost && colliders.Length > 0)
             {
                 isAngry = true;
+                EnemyManager.instance.SendEnemyStates();
             }
         }
     }
@@ -68,17 +83,19 @@ public class Enemy : MonoBehaviour
     void RoamingState()
     {
         float step = speed * Time.deltaTime;
-        if (MapGenerator.instance == null) return;
 
-        if (moveCommands.Count <= 0)
+        if (moveCommands == null || moveCommands.Count <= 0)
         {
             MoveToNewPositionInMaze();
+            return;
         }
 
-        enemyTransform.position = Vector2.MoveTowards(enemyTransform.position, moveCommands.Peek(), step);
+        transform.position = Vector2.MoveTowards(transform.position, moveCommands.Peek(), step);
+        rb2d.position = Vector2.MoveTowards(transform.position, moveCommands.Peek(), step);
+        rb2d.rotation += rotationSpeed;
 
-        if (Mathf.Approximately(enemyTransform.position.x, moveCommands.Peek().x) &&
-        Mathf.Approximately(enemyTransform.position.y, moveCommands.Peek().y))
+        if (Mathf.Approximately(transform.position.x, moveCommands.Peek().x) &&
+        Mathf.Approximately(transform.position.y, moveCommands.Peek().y))
         {
             moveCommands.Pop();
         }
@@ -87,17 +104,31 @@ public class Enemy : MonoBehaviour
     void ChasingState()
     {
         float step = speed * 2 * Time.deltaTime;
-        Vector2 closestPlayerPosition = GetClosestPlayer(12f).position;
-        enemyTransform.position = Vector2.MoveTowards(enemyTransform.position, closestPlayerPosition, step);
+        Vector2 closestPlayerPosition;
+        try {
+            closestPlayerPosition = GetClosestPlayer(12f).position;
+        }
+        catch (NullReferenceException)
+        {
+            closestPlayerPosition = transform.position;
+        }
+
+        Vector2 direction = (closestPlayerPosition - (Vector2) transform.position).normalized;
+        rb2d.rotation += rotationSpeed * 5;
+
+        rb2d.velocity = direction * speed * 2;
     }
 
     Transform GetClosestPlayer(float radius)
     {
-        Collider2D[] players = Physics2D.OverlapCircleAll(enemyTransform.position, radius, targetLayers);
-        if (players.Length == 0)
+        Collider2D[] players = Physics2D.OverlapCircleAll(transform.position, radius, targetLayers);
+        if (NetworkController.isHost && players.Length == 0)
         {
             isAngry = false;
-            return enemyTransform;
+            TCPHost.instance.SendDataToClients($"EnemyManager:RestartEnemyMoveJourney:{ID}");
+            MoveToNewPositionInMaze();
+            EnemyManager.instance.SendEnemyStates();
+            return transform;
         }
 
         Transform closestPlayerTransform = null;
@@ -133,12 +164,66 @@ public class Enemy : MonoBehaviour
 
     public void SetPosition(Vector2 pos)
     {
+        transform.position = pos;
         rb2d.position = pos;
+    }
+
+    public Vector2 GetNextCommand()
+    {
+        if (moveCommands.Count > 1)
+        {
+            return moveCommands.Peek();
+        }
+        else {
+            return transform.position;
+        }
+    }
+
+    public void SetNextCommand(Vector2 newPos)
+    {
+        if (moveCommands.Count > 0)
+        {
+            moveCommands.Pop();
+        }
+        moveCommands.Push(newPos);
+    }
+
+    public Vector2 GetVelocity()
+    {
+        return rb2d.velocity;
+    }
+
+    public void SetVelocity(Vector2 curVelocity)
+    {
+        rb2d.velocity = curVelocity;
     }
 
     public void HideEnemy()
     {
         isAngry = false;
         enemyObject.SetActive(false);
+    }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("Cell"))
+        {
+            lastCellEntered = collision.gameObject.GetComponent<MazeCell>();
+        }
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (NetworkController.isHost)
+        {
+            if (collision.gameObject.CompareTag("Player"))
+            {
+                interval = -checkTimerInterval * 50;
+                isAngry = false;
+                TCPHost.instance.SendDataToClients($"EnemyManager:RestartEnemyMoveJourney:{ID}");
+                MoveToNewPositionInMaze();
+                EnemyManager.instance.SendEnemyStates();
+            }
+        }
     }
 }

@@ -19,10 +19,10 @@ public class PlayerStats : MonoBehaviour
 
     void Start()
     {
-        UpdateStats(0f, 0, 0, 0);
+        UpdateStats(0.0, 0, 0, 0);
     }
 
-    public void UpdateStats(float weight, double itemValue, int inventoryCount, double balance)
+    public void UpdateStats(double weight, double itemValue, int inventoryCount, double balance)
     {
         weightText.text = $"Weight: {weight} LB";
         itemValueText.text = $"Value Of Items: ${itemValue}";

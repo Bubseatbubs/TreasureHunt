@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
+
 
 public class Item : MonoBehaviour
 {
     public Rigidbody2D rb2d;
     public int value { get; private set; }
-    public float weight { get; private set; }
+    public double weight { get; private set; }
     public int ID { get; private set; }
     public bool pickedUp { get; private set; }
 
@@ -17,9 +19,9 @@ public class Item : MonoBehaviour
     void Start()
     {
         // Add random attributes to the item
-        value = Random.Range(10, 50);
-        weight = value * Random.Range(0.9f, 1.1f);
-        itemObject.transform.localScale = new Vector3(weight / 50f, weight / 50f, 1);
+        value = UnityEngine.Random.Range(10, 50);
+        weight = Math.Round(value * UnityEngine.Random.Range(0.9f, 1.1f), 2);
+        this.transform.localScale = new Vector3((float) weight / 50f, (float) weight / 50f, 1);
     }
 
     public void AssignID(int id)
@@ -29,6 +31,7 @@ public class Item : MonoBehaviour
 
     public void SetPosition(Vector2 pos)
     {
+        this.transform.position = pos;
         rb2d.position = pos;
     }
 
@@ -51,6 +54,12 @@ public class Item : MonoBehaviour
     {
         pickedUp = true;
         itemObject.SetActive(false);
+    }
+
+    public void RespawnItem()
+    {
+        pickedUp = false;
+        itemObject.SetActive(true);
     }
 
     void OnCollisionStay2D(Collision2D collision)

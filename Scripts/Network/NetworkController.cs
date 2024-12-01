@@ -18,7 +18,7 @@ public class NetworkController : MonoBehaviour
     UDPHost udpHost;
     TCPConnection tcpClient;
     UDPConnection udpClient;
-    public String username {get; private set;}
+    public String username { get; private set; }
 
     // Singleton
     void Awake()
@@ -81,16 +81,24 @@ public class NetworkController : MonoBehaviour
         tcpClient = gameObject.AddComponent<TCPConnection>();
         udpClient = gameObject.AddComponent<UDPConnection>();
 
-        tcpClient.Instantiate(hostIP, port);
-        udpClient.Instantiate(hostIP, port);
+        try
+        {
+            tcpClient.Instantiate(hostIP, port);
+            udpClient.Instantiate(hostIP, port);
 
-        // Generate Seed
-        RandomSeed.instance.InitializeSeed();
+            // Generate Seed
+            RandomSeed.instance.InitializeSeed();
 
-        username = name;
+            username = name;
 
-        Debug.Log($"Connected to {hostIP}:{port}");
-        SystemManager.instance.InitializeGame();
+            Debug.Log($"Connected to {hostIP}:{port}");
+            SystemManager.instance.InitializeGame();
+        }
+        catch (Exception)
+        {
+            Debug.LogWarning("Error connecting to host! Make sure you typed the IP address correctly.");
+            return;
+        }
     }
 
     public void StartGame()
@@ -99,6 +107,7 @@ public class NetworkController : MonoBehaviour
         {
             // Start sending player positions to clients
             PlayerManager.instance.BeginSendingHostPositionsToClients();
+            EnemyManager.instance.BeginSendingHostPositionsToClients();
         }
         else
         {
@@ -183,7 +192,8 @@ public class NetworkController : MonoBehaviour
     public static void RemovePlayer(int ID)
     {
         PlayerManager.instance.RemovePlayer(ID);
-        if (isHost) {
+        if (isHost)
+        {
             TCPHost.instance.SendDataToClients($"NetworkController:RemovePlayer:{ID}");
         }
     }

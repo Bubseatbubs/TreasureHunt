@@ -240,6 +240,9 @@ MonoBehaviour:
   rb2d: {fileID: 6537032197521042427}
   forceToApply: {x: 0, y: 0}
   forceDamping: 1
+  canPickUpThisLayer:
+    serializedVersion: 2
+    m_Bits: 256
   usernameDisplay: {fileID: 5281514501062581226}
 --- !u!50 &6537032197521042427
 Rigidbody2D:

@@ -40,7 +40,7 @@ public class ItemManager : MonoBehaviour
 
     public string SendItemPositions()
     {
-        string response = "PlayerManager:UpdatePlayerPositions:";
+        string response = "ItemManager:UpdateItemPositions:";
         foreach (KeyValuePair<int, Item> i in items)
         {
             response += i.Key + "|" + i.Value.GetXPosition() + "|" + i.Value.GetYPosition() + "/";
@@ -75,6 +75,11 @@ public class ItemManager : MonoBehaviour
     public static void HideItem(int itemID)
     {
         items[itemID].HideItem();
+    }
+
+    public static void RespawnItem(int itemID)
+    {
+        items[itemID].RespawnItem();
     }
 
     public void CreateItems(int numberOfItems)

@@ -19,6 +19,10 @@ public class Pathfinding : MonoBehaviour
 
     public static Stack<Vector2> AStarSearch(MazeCell start, MazeCell goal)
     {
+        if (start == null || goal == null) {
+            return null;
+        }
+
         Debug.DrawLine(start.GetWorldPosition(), start.GetWorldPosition() + new Vector2(1, 1), Color.magenta, 3f);
         Debug.DrawLine(goal.GetWorldPosition(), goal.GetWorldPosition() + new Vector2(1, 1), Color.green, 3f);
         var frontier = new PriorityQueue<MazeCell, double>();

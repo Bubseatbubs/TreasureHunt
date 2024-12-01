@@ -3602,6 +3602,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 3788792368056422823, guid: 2d91133c8c30d2740b903e009dd4f46d, type: 3}
+  playersCanPickUpThisLayer:
+    serializedVersion: 2
+    m_Bits: 256
 --- !u!1 &866996235
 GameObject:
   m_ObjectHideFlags: 0

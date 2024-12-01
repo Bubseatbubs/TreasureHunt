@@ -68,8 +68,17 @@ public class TCPHost : MonoBehaviour
         foreach (KeyValuePair<int, NetworkStream> stream in streams)
         {
             if (stream.Key == ignoreID) continue; // Don't send to same client
-            stream.Value.Write(inputBuffer, 0, inputBuffer.Length);
-            stream.Value.Flush();
+            try
+            {
+                stream.Value.Write(inputBuffer, 0, inputBuffer.Length);
+                stream.Value.Flush();
+            }
+            catch (SocketException)
+            {
+                RemoveClient(stream.Key);
+            }
+
+
         }
     }
 
@@ -133,7 +142,8 @@ public class TCPHost : MonoBehaviour
                 string message = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
                 // Debug.Log($"Received from peer {peerID}: " + message);
 
-                if (message.Equals("TCP:Disconnect")) {
+                if (message.Equals("TCP:Disconnect"))
+                {
                     throw new Exception();
                 }
 
