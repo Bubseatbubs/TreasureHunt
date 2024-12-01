@@ -54,8 +54,8 @@ public class TCPConnection : MonoBehaviour
     public void DisconnectFromHost()
     {
         SendDataToHost("TCP:Disconnect");
-        host?.Close();
         hostThread.Abort();
+        host?.Close();
     }
 
     private void HandleHost(NetworkStream peerStream, int peerID)

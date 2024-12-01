@@ -157,7 +157,13 @@ public class TCPHost : MonoBehaviour
             RemoveClient(peerID);
             NetworkController.RemovePlayer(peerID);
         }
+    }
 
+    public void DisconnectFromHost()
+    {
+        SendDataToClients("TCP:Disconnect");
+        listenerThread.Abort();
+        listener?.Stop();
     }
 
     private void OnApplicationQuit()

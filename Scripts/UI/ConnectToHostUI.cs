@@ -18,6 +18,9 @@ public class ConnectToHostUI : MonoBehaviour
     [SerializeField]
     private GameObject waitForHostPanel;
 
+    [SerializeField]
+    private GameObject tutorialPanel;
+
 
     public void ToggleMenu()
     {

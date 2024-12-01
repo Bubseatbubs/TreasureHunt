@@ -39,6 +39,7 @@ public class Enemy : MonoBehaviour
 
     public void MoveToNewPositionInMaze()
     {
+        rb2d.velocity = new Vector2(0, 0);
         Debug.DrawLine(transform.position, (Vector2)transform.position + new Vector2(1, 1), Color.green, 5f);
         MazeCell start = lastCellEntered;
         bool foundValidCell = false;
@@ -91,7 +92,8 @@ public class Enemy : MonoBehaviour
         }
 
         transform.position = Vector2.MoveTowards(transform.position, moveCommands.Peek(), step);
-        rb2d.position = Vector2.MoveTowards(transform.position, moveCommands.Peek(), step);
+        rb2d.position = Vector2.MoveTowards(rb2d.position, moveCommands.Peek(), step);
+        rb2d.rotation += rotationSpeed;
 
         if (Mathf.Approximately(transform.position.x, moveCommands.Peek().x) &&
         Mathf.Approximately(transform.position.y, moveCommands.Peek().y))
