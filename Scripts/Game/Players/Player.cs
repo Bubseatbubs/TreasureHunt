@@ -26,6 +26,7 @@ public class Player : MonoBehaviour
     public double carriedValueMultiplier { get; private set; }
     public double balance { get; private set; }
     private PlayerStats statWindow;
+    private int commandCooldown = 20;
 
     [SerializeField]
     private LayerMask canPickUpThisLayer;
@@ -57,11 +58,13 @@ public class Player : MonoBehaviour
         }
 
         Move(PlayerInput);
+        if (commandCooldown > 0) commandCooldown--;
     }
 
     void Update()
     {
-        if (NetworkController.ID != ID) return;
+        if (NetworkController.ID != ID && commandCooldown > 0) return;
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
             // Pickup Item logic
@@ -73,6 +76,8 @@ public class Player : MonoBehaviour
             {
                 RequestItemPickup();
             }
+
+            commandCooldown = 20;
         }
         else if (Input.GetKeyDown(KeyCode.E))
         {
@@ -86,6 +91,8 @@ public class Player : MonoBehaviour
             {
                 RequestItemDrop();
             }
+
+            commandCooldown = 20;
         }
     }
 

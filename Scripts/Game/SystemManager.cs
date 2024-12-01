@@ -86,11 +86,14 @@ public class SystemManager : MonoBehaviour
 
     public void EndGame()
     {
-        Debug.Log("The game has ended!");
         gameBegan = false;
 
         Player winner = PlayerManager.instance.GetHighestScoringPlayer();
-        Debug.Log($"The winner is {winner.username} with a balance of ${winner.balance}!");
+        if (NetworkController.isHost)
+        {
+            ChatManager.instance.SendSystemMessage($"The game has ended! The winner is {winner.username} with a balance of ${winner.balance}!");
+        }
+
         timerPanel.SetActive(false);
         playerStatsWindow.SetActive(false);
     }
