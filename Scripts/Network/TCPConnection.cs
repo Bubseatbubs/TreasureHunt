@@ -20,8 +20,9 @@ public class TCPConnection : MonoBehaviour
     {
         if (instance)
         {
-            Debug.Log("TCPConnection Instance already exists");
-            return;
+            Debug.Log("TCPConnection Instance already exists, replacing");
+            instance.Disconnect();
+            instance = this;
         }
 
         // No instance yet, set this to it
@@ -31,7 +32,7 @@ public class TCPConnection : MonoBehaviour
         host = new TcpClient(hostIP, port);
         hostStream = host.GetStream();
         Debug.Log("Connected to TCP host at IP: " + hostIP);
-        
+
         // First message returned is the ID
         byte[] bufferID = new byte[4];
         int bytesRead = hostStream.Read(bufferID, 0, bufferID.Length);
@@ -53,27 +54,49 @@ public class TCPConnection : MonoBehaviour
 
     public void DisconnectFromHost()
     {
-        SendDataToHost("TCP:Disconnect");
-        hostThread.Abort();
+        SendDataToHost("TCP_TreasureHunt:Disconnect");
+        Disconnect();
+    }
+
+    public void Disconnect()
+    {
+        hostThread?.Abort();
         host?.Close();
+        instance = null;
+        Destroy(this);
     }
 
     private void HandleHost(NetworkStream peerStream, int peerID)
     {
         byte[] peerBuffer = new byte[4096];
         Debug.Log("Awaiting messages from peer");
-        while (true)
+        try
         {
-            int bytesRead = peerStream.Read(peerBuffer, 0, peerBuffer.Length);
-            if (bytesRead == 0) break;
+            while (true)
+            {
+                int bytesRead = peerStream.Read(peerBuffer, 0, peerBuffer.Length);
+                if (bytesRead == 0) break;
 
-            string message = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
-            Debug.Log($"Received TCP message from peer {peerID}: " + message);
+                string message = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
+                Debug.Log($"Received TCP message from peer {peerID}: " + message);
 
-            // Handle received data
-            // Use main thread as Unity doesn't allow API to be used on thread
-            NetworkController.AddData(message);
+                if (message.Equals("TCP_TreasureHunt:Disconnect"))
+                {
+                    throw new SocketException();
+                }
+
+                // Handle received data
+                // Use main thread as Unity doesn't allow API to be used on thread
+                NetworkController.AddData(message);
+            }
         }
+        catch (SocketException)
+        {
+            // If client disconnects or some other error occurs while reading
+            Debug.Log($"Connection to host was lost.");
+            MainThreadDispatcher.instance.Enqueue(() => NetworkController.instance.DisconnectFromGame());
+        }
+
     }
 
     public void SendDataToHost(string message)
@@ -83,16 +106,18 @@ public class TCPConnection : MonoBehaviour
         hostStream.Flush();
     }
 
-    public string SendAndReceiveDataFromHost(string message) {
+    public string SendAndReceiveDataFromHost(string message)
+    {
         // Temporarily stop host thread to get specific data
         hostThread.Abort();
         byte[] peerBuffer = new byte[4096];
         SendDataToHost(message);
         int bytesRead = hostStream.Read(peerBuffer, 0, peerBuffer.Length);
-        if (bytesRead == 0) {
+        if (bytesRead == 0)
+        {
             Debug.Log("Error reading from host, resending!");
             return SendAndReceiveDataFromHost(message);
-        } 
+        }
 
         string receivedData = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
         Debug.Log($"Received from Host {receivedData}");

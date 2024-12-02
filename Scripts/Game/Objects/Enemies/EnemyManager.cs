@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class EnemyManager : MonoBehaviour
@@ -106,6 +107,8 @@ public class EnemyManager : MonoBehaviour
 
     public static void UpdateEnemyStates(string message)
     {
+        if (!SystemManager.instance.isInGame()) return;
+
         string[] enemyData = message.Split('/');
         Vector2 nextCommand, curVelocity;
         for (int i = 0; i < enemyData.Length - 1; i++)
@@ -130,8 +133,21 @@ public class EnemyManager : MonoBehaviour
         for (int i = 0; i < numberOfEnemies; i++)
         {
             // Create enemy
-            CreateNewEnemy(MapGenerator.instance.GetRandomMazeCell());
+            CreateNewEnemy(MazeManager.instance.GetRandomMazeCell());
         }
+    }
+
+    public void Reset()
+    {
+        CancelInvoke();
+
+        foreach (KeyValuePair<int, Enemy> enemy in enemies)
+        {
+            enemy.Value.Delete();
+        }
+
+        enemies.Clear();
+        nextEnemyID = 0;
     }
 }
 

@@ -142,7 +142,7 @@ public class TCPHost : MonoBehaviour
                 string message = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
                 // Debug.Log($"Received from peer {peerID}: " + message);
 
-                if (message.Equals("TCP:Disconnect"))
+                if (message.Equals("TCP_TreasureHunt:Disconnect"))
                 {
                     throw new Exception();
                 }
@@ -159,16 +159,17 @@ public class TCPHost : MonoBehaviour
         }
     }
 
-    public void DisconnectFromHost()
+    public void Disconnect()
     {
-        SendDataToClients("TCP:Disconnect");
+        SendDataToClients("TCP_TreasureHunt:Disconnect");
         listenerThread.Abort();
         listener?.Stop();
+        instance = null;
+        Destroy(this);
     }
 
     private void OnApplicationQuit()
     {
-        listenerThread.Abort();
-        listener?.Stop();
+        Disconnect();
     }
 }

@@ -5,15 +5,19 @@ using System.Text;
 using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using UnityEngine;
 
 public class UDPHost : MonoBehaviour
 {
+    public static UDPHost instance;
     private UdpClient udpServer;
     private HashSet<IPEndPoint> connectedClients;
-    public static UDPHost instance;
-    public bool isUDPPortActive { get; private set; }
+    
+    private bool isUDPPortActive;
+    private bool isUDPPortBroadcasting;
+    private string localIPV4;
 
     /* 
     Begins a lobby as the host client in the P2P connection.
@@ -38,6 +42,8 @@ public class UDPHost : MonoBehaviour
             connectedClients = new HashSet<IPEndPoint>();
 
             udpServer.BeginReceive(OnReceiveData, null);
+            udpServer.EnableBroadcast = true;
+            IPEndPoint broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, port);
             Debug.Log("Hosting a UDP port");
 
             isUDPPortActive = true;
@@ -48,23 +54,30 @@ public class UDPHost : MonoBehaviour
         }
     }
 
-    void FixedUpdate() {
-        udpServer.BeginReceive(OnReceiveData, null);
+    void FixedUpdate()
+    {
+        if (isUDPPortActive)
+        {
+            udpServer.BeginReceive(OnReceiveData, null);
+        }
     }
 
-    void OnReceiveData(IAsyncResult result) {
+    void OnReceiveData(IAsyncResult result)
+    {
         IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
         byte[] data = udpServer.EndReceive(result, ref clientEndPoint);
 
         string message = Encoding.UTF8.GetString(data);
         // Debug.Log($"Received UDP message: {message}");
 
-        if (message.Equals("UDP:Connect") || !connectedClients.Contains(clientEndPoint)) {
+        if (message.Equals("UDP_TreasureHunt:Connect") || !connectedClients.Contains(clientEndPoint))
+        {
             Debug.Log($"Added client {clientEndPoint} to endpoint list");
             connectedClients.Add(clientEndPoint);
             return;
         }
-        else if (message.Equals("UDP:Disconnect")) {
+        else if (message.Equals("UDP_TreasureHunt:Disconnect"))
+        {
             Debug.Log($"Removing client {clientEndPoint} from endpoint list");
             RemoveClient(clientEndPoint);
             return;
@@ -89,8 +102,26 @@ public class UDPHost : MonoBehaviour
         connectedClients.Remove(clientEndPoint);
     }
 
+    public void Disconnect()
+    {
+        isUDPPortActive = false;
+        udpServer.Close();
+        instance = null;
+        Destroy(this);
+    }
+
+    public void StartBroadcasting()
+    {
+        isUDPPortBroadcasting = true;
+    }
+
+    public void StopBroadcasting()
+    {
+        isUDPPortBroadcasting = false;
+    }
+
     void OnApplicationQuit()
     {
-        udpServer.Close();
+        Disconnect();
     }
 }

@@ -13,6 +13,7 @@ public class UDPConnection : MonoBehaviour
     private UdpClient client;
     private IPEndPoint serverEndPoint;
     public static UDPConnection instance;
+    private bool isUDPPortActive = false;
 
     // Singleton
     public void Instantiate(string hostIP, int port)
@@ -29,14 +30,16 @@ public class UDPConnection : MonoBehaviour
         serverEndPoint = new IPEndPoint(IPAddress.Parse(hostIP), port);
 
         Debug.Log($"Connected to UDP port: {hostIP}");
-        SendDataToHost("UDP:Connect");
+        SendDataToHost("UDP_TreasureHunt:Connect");
         client.BeginReceive(OnReceiveData, null);
+        isUDPPortActive = true;
     }
 
-    public void DisconnectFromHost()
+    public void Disconnect()
     {
-        SendDataToHost("UDP:Disconnect");
         client?.Close();
+        instance = null;
+        Destroy(this);
     }
 
     public void SendDataToHost(string message)
@@ -46,20 +49,24 @@ public class UDPConnection : MonoBehaviour
         client.Send(data, data.Length, serverEndPoint);
     }
 
-    void FixedUpdate() {
-        client.BeginReceive(OnReceiveData, null);
+    void FixedUpdate()
+    {
+        if (isUDPPortActive)
+        {
+            client.BeginReceive(OnReceiveData, null);
+        }
     }
 
     void OnReceiveData(IAsyncResult result)
     {
         byte[] data = client.EndReceive(result, ref serverEndPoint);
         string message = Encoding.UTF8.GetString(data);
-        // Debug.Log($"Received UDP: {message}");
+        Debug.Log($"Received UDP: {message}");
         NetworkController.AddData(message);
     }
 
     void OnApplicationQuit()
     {
-        DisconnectFromHost();
+        Disconnect();
     }
 }

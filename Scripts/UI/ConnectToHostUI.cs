@@ -59,7 +59,10 @@ public class ConnectToHostUI : MonoBehaviour
         }
 
         NetworkController networkController = NetworkController.instance;
-        networkController.ConnectToGame(IPAddress, port, username);
+        bool success = networkController.ConnectToGame(IPAddress, port, username);
+        if (!success) return;
+
+        // Set up buttons if connecting was successful
         networkButtons.SetActive(false);
         waitForHostPanel.SetActive(true);
     }

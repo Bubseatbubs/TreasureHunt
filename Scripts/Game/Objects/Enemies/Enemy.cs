@@ -46,7 +46,7 @@ public class Enemy : MonoBehaviour
         MazeCell destination = start;
         while (!foundValidCell)
         {
-            destination = MapGenerator.instance.GetRandomMazeCell();
+            destination = MazeManager.instance.GetRandomMazeCell();
             if (destination.connections.Count > 0)
             {
                 foundValidCell = true;
@@ -236,5 +236,12 @@ public class Enemy : MonoBehaviour
                 EnemyManager.instance.SendEnemyStates();
             }
         }
+    }
+
+    public void Delete()
+    {
+        moveCommands.Clear();
+        lastCellEntered = null;
+        Destroy(gameObject);
     }
 }

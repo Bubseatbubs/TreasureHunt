@@ -70,4 +70,9 @@ public class Item : MonoBehaviour
             rb2d.position += new Vector2(rb2d.position.x + 0.25f, rb2d.position.y);
         }
     }
+
+    public void Delete()
+    {
+        Destroy(gameObject);
+    }
 }

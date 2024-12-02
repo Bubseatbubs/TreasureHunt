@@ -29,4 +29,9 @@ public class PlayerStats : MonoBehaviour
         inventoryCountText.text = $"Items in Inventory: {inventoryCount}";
         balanceText.text = $"Balance: ${balance}";
     }
+
+    public void ResetStats()
+    {
+        UpdateStats(0.0, 0, 0, 0);
+    }
 }

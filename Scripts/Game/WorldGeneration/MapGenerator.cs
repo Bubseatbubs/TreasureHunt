@@ -6,7 +6,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEditor;
 
-public class MapGenerator : MonoBehaviour
+public class MazeManager : MonoBehaviour
 {
 
     [SerializeField]
@@ -30,9 +30,10 @@ public class MapGenerator : MonoBehaviour
     [SerializeField]
     private LayerMask doNotSpawnItemsOn;
 
-    public static MapGenerator instance;
+    public static MazeManager instance;
 
     private MazeCell[,] _mazeGrid;
+    public static Dictionary<int, MazeRoom> rooms = new Dictionary<int, MazeRoom>();
     private static int _seed;
 
     private int x_displacement = 0;
@@ -64,6 +65,8 @@ public class MapGenerator : MonoBehaviour
         GenerateMaze(null, _mazeGrid[0, 0]); // Make initial maze
         ClearCenter(); // Clear out the center where players spawn in
         CreateRooms(48, 2); // Spawn in rooms
+
+        // Handle things that rely on map generation here
         ItemManager.instance.CreateItems(100);
         EnemyManager.instance.CreateEnemies(8);
 
@@ -129,7 +132,8 @@ public class MapGenerator : MonoBehaviour
             // Create room
             float realX = ConvertXGridToLocation(originX) + 2.5f;
             float realY = ConvertYGridToLocation(originY) + 2.5f;
-            Instantiate(_mazeRoomPrefab, new Vector2(realX, realY), Quaternion.identity);
+            MazeRoom room = Instantiate(_mazeRoomPrefab, new Vector2(realX, realY), Quaternion.identity);
+            rooms.Add(i, room);
         }
     }
 
@@ -355,5 +359,27 @@ public class MapGenerator : MonoBehaviour
     public MazeCell GetMazeCell(int x, int y)
     {
         return _mazeGrid[x, y];
+    }
+
+    public void Reset()
+    {
+        // Reset cells
+        for (int x = 0; x < _mazeGrid.GetLength(0); x++)
+        {
+            for (int y = 0; y < _mazeGrid.GetLength(1); y++)
+            {
+                _mazeGrid[x, y].Delete();
+                _mazeGrid[x, y] = null;
+            }
+        }
+
+        // Reset rooms
+        foreach (KeyValuePair<int, MazeRoom> room in rooms)
+        {
+            room.Value.Delete();
+        }
+
+        rooms.Clear();
+        _mazeGrid = null;
     }
 }

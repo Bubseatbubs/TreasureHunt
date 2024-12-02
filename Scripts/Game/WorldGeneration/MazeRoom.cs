@@ -6,4 +6,9 @@ public class MazeRoom : MonoBehaviour
 {
     [SerializeField]
     private GameObject _roomBody;
+
+    public void Delete()
+    {
+        Destroy(gameObject);
+    }
 }

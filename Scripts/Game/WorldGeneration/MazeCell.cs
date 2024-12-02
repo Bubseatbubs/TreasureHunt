@@ -106,4 +106,9 @@ public class MazeCell : MonoBehaviour
         this.x = x;
         this.y = y;
     }
+
+    public void Delete()
+    {
+        Destroy(gameObject);
+    }
 }

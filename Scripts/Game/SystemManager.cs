@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using Cinemachine;
 
 public class SystemManager : MonoBehaviour
 {
@@ -24,6 +25,15 @@ public class SystemManager : MonoBehaviour
 
     [SerializeField]
     private GameObject playerStatsWindow;
+
+    [SerializeField]
+    private GameObject disconnectButton;
+
+    [SerializeField]
+    private GameObject networkOptions;
+
+    [SerializeField]
+    private CinemachineVirtualCamera virtualCamera;
 
     /*
     Singleton: Make sure there's only one SystemManager
@@ -57,7 +67,7 @@ public class SystemManager : MonoBehaviour
     public void StartGame(String username)
     {
         gameBegan = true;
-        MapGenerator mazeGenerator = mazeGeneratorObject.GetComponent<MapGenerator>();
+        MazeManager mazeGenerator = mazeGeneratorObject.GetComponent<MazeManager>();
 
         // Create player
         PlayerManager.CreateNewPlayer(NetworkController.ID, username);
@@ -68,6 +78,7 @@ public class SystemManager : MonoBehaviour
         // Show game UI
         timerPanel.SetActive(true);
         playerStatsWindow.SetActive(true);
+        disconnectButton.SetActive(true);
         Debug.Log("The game has begun!");
     }
 
@@ -98,6 +109,24 @@ public class SystemManager : MonoBehaviour
         playerStatsWindow.SetActive(false);
     }
 
+    public void Reset()
+    {
+        EndGame();
+        gameBegan = false;
+        PlayerManager.instance.Reset();
+        ItemManager.instance.Reset();
+        EnemyManager.instance.Reset();
+        MazeManager.instance.Reset();
+        timer = 300;
+
+        chatPanel.SetActive(false);
+        disconnectButton.SetActive(false);
+        networkOptions.SetActive(true);
+
+        virtualCamera.Follow = null;
+        virtualCamera.ForceCameraPosition(new Vector3(0, 0, -10), Quaternion.identity);
+    }
+
     public void GenTimeSpanFromSeconds()
     {
         // Create a TimeSpan object and TimeSpan string from 
@@ -106,5 +135,10 @@ public class SystemManager : MonoBehaviour
         string timeInterval = interval.ToString(@"mm\:ss");
 
         timerText.text = timeInterval;
+    }
+
+    public bool isInGame()
+    {
+        return gameBegan;
     }
 }

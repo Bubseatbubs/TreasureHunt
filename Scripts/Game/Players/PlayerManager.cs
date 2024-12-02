@@ -296,7 +296,7 @@ public class PlayerManager : MonoBehaviour
         
         Player curPlayer = players[ID];
         players.Remove(ID);
-        MainThreadDispatcher.instance.Enqueue(() => curPlayer.RemovePlayer());
+        MainThreadDispatcher.instance.Enqueue(() => curPlayer.Delete());
     }
 
     public static void KillPlayer(int ID)
@@ -307,5 +307,18 @@ public class PlayerManager : MonoBehaviour
     public static Boolean IsPlayerInitialized()
     {
         return clientPlayer != null;
+    }
+
+    public void Reset()
+    {
+        CancelInvoke();
+
+        clientPlayer = null;
+        foreach (KeyValuePair<int, Player> player in players)
+        {
+            player.Value.Delete();
+        }
+
+        players.Clear();
     }
 }

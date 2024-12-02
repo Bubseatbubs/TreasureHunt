@@ -199,7 +199,7 @@ public class Player : MonoBehaviour
 
     public void DropItem()
     {
-        if (inventory.Count == 0) return;
+        if (inventory.Count <= 0) return;
         Item item = inventory.Dequeue();
         item.RespawnItem();
         item.SetPosition(rb2d.position);
@@ -212,7 +212,7 @@ public class Player : MonoBehaviour
         carriedValue = Math.Round(realCarriedValue * (1 + carriedValueMultiplier), 2);
         weight -= item.weight;
 
-        if (Math.Abs(weight) < 0.01)
+        if (weight < 0.01)
         {
             weight = 0;
         }
@@ -288,6 +288,7 @@ public class Player : MonoBehaviour
             DropItem();
         }
 
+        inventory.Clear();
         transform.position = Vector2.zero;
         rb2d.position = Vector2.zero;
 
@@ -308,8 +309,15 @@ public class Player : MonoBehaviour
         inventoryCount = 0;
     }
 
-    public void RemovePlayer()
+    public void Delete()
     {
+        if (NetworkController.ID == ID)
+        {
+            statWindow.ResetStats();
+        }
+
+        inventory.Clear();
+        ResetPlayerStats();
         Destroy(gameObject);
     }
 }

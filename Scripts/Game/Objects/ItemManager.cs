@@ -38,7 +38,7 @@ public class ItemManager : MonoBehaviour
         nextItemID++;
     }
 
-    public string SendItemStates()
+    public void SendItemStates()
     {
         string response = "ItemManager:UpdateItemStates:";
         foreach (KeyValuePair<int, Item> i in items)
@@ -46,7 +46,7 @@ public class ItemManager : MonoBehaviour
             response += i.Key + "|" + i.Value.GetXPosition() + "|" + i.Value.GetYPosition() + "|" + i.Value.pickedUp + "/";
         }
 
-        return response;
+        UDPHost.instance.SendDataToClients(response);
     }
 
     public static void UpdateItemState(int id, Vector2 pos, bool isPickedUp)
@@ -96,13 +96,13 @@ public class ItemManager : MonoBehaviour
         for (int i = 0; i < numberOfItems; i++)
         {
             // Create item
-            CreateNewItem(MapGenerator.instance.GetRandomSpawnPosition());
+            CreateNewItem(MazeManager.instance.GetRandomSpawnPosition());
         }
     }
 
     public void BeginSendingHostPositionsToClients()
     {
-        InvokeRepeating("SendHostPositionsToClients", 0f, 0.5f);
+        InvokeRepeating("SendHostPositionsToClients", 1f, 0.5f);
     }
 
     private void SendHostPositionsToClients()
@@ -112,5 +112,18 @@ public class ItemManager : MonoBehaviour
         {
             SendItemStates();
         }
+    }
+
+    public void Reset()
+    {
+        CancelInvoke();
+
+        foreach (KeyValuePair<int, Item> item in items)
+        {
+            item.Value.Delete();
+        }
+
+        items.Clear();
+        nextItemID = 0;
     }
 }

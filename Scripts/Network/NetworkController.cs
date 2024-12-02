@@ -67,7 +67,7 @@ public class NetworkController : MonoBehaviour
     Connect to an already existing host as a client.
     Host sends client an ID to use for the session.
     */
-    public void ConnectToGame(string hostIP, int port, string name)
+    public bool ConnectToGame(string hostIP, int port, string name)
     {
         // Set up TCP/UDP ports
         Debug.Log($"Using IP Address: {hostIP} and port {port}");
@@ -75,30 +75,34 @@ public class NetworkController : MonoBehaviour
         if (isHost)
         {
             Debug.Log("Can't connect while hosting!");
-            return;
+            return false;
         }
-
-        tcpClient = gameObject.AddComponent<TCPConnection>();
-        udpClient = gameObject.AddComponent<UDPConnection>();
 
         try
         {
+            tcpClient = gameObject.AddComponent<TCPConnection>();
+            udpClient = gameObject.AddComponent<UDPConnection>();
+
             tcpClient.Instantiate(hostIP, port);
             udpClient.Instantiate(hostIP, port);
-
-            // Generate Seed
-            RandomSeed.instance.InitializeSeed();
-
-            username = name;
-
-            Debug.Log($"Connected to {hostIP}:{port}");
-            SystemManager.instance.InitializeGame();
         }
         catch (Exception)
         {
+            tcpClient.Disconnect();
+            udpClient.Disconnect();
+
+            tcpClient = null;
+            udpClient = null;
             Debug.LogWarning("Error connecting to host! Make sure you typed the IP address correctly.");
-            return;
+            return false;
         }
+
+        // Generate Seed
+        RandomSeed.instance.InitializeSeed();
+        username = name;
+        Debug.Log($"Connected to {hostIP}:{port}");
+        SystemManager.instance.InitializeGame();
+        return true; // Returns true if connecting was successful
     }
 
     public void StartGame()
@@ -118,6 +122,34 @@ public class NetworkController : MonoBehaviour
         }
 
         SystemManager.instance.StartGame(username);
+    }
+
+    public void DisconnectFromGame()
+    {
+        Debug.Log("Running disconnect from game");
+        if (isHost)
+        {
+            // Prepare TCP and UDP host
+            tcpHost.Disconnect();
+            udpHost.Disconnect();
+
+            tcpHost = null;
+            udpHost = null;
+        }
+        else
+        {
+            tcpClient.DisconnectFromHost();
+            udpClient.Disconnect();
+
+            tcpClient = null;
+            udpClient = null;
+        }
+
+        isHost = false;
+        username = null;
+        SystemManager.instance.Reset();
+
+        Debug.Log("Finished");
     }
 
     void FixedUpdate()
