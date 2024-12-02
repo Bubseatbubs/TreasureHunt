@@ -248,7 +248,7 @@ public class PlayerManager : MonoBehaviour
         players[playerID].DropItem();
         if (NetworkController.isHost)
         {
-            TCPHost.instance.SendDataToClients($"PlayerManager:DropPlayerItem:{playerID}");
+            UDPHost.instance.SendDataToClients($"PlayerManager:DropPlayerItem:{playerID}");
         }
     }
 

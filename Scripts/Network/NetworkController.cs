@@ -170,50 +170,58 @@ public class NetworkController : MonoBehaviour
     void HandleData(string message)
     {
         // Parse incoming data, send to relevant managers
-        string[] data = message.Split(':');
-        if (data.Length < 2)
+        try
         {
-            Debug.Log("Invalid command format.");
-            return;
-        }
-
-        Type type = Type.GetType(data[0]);
-        if (type == null)
-        {
-            Debug.Log($"Class type '{data[0]}' could not be found.");
-            return;
-        }
-
-        MethodInfo method = type.GetMethod(data[1]);
-        if (method == null)
-        {
-            Debug.Log($"Method type '{data[1]}' could not be found.");
-            return;
-        }
-
-        ParameterInfo[] methodParams = method.GetParameters();
-        object[] typedParams = new object[methodParams.Length];
-        for (int i = 2; i < data.Length; i++)
-        {
-            // Convert the rest into parameters to use for the method
-            if (i >= methodParams.Length + 2)
+            string[] data = message.Split(':');
+            if (data.Length < 2)
             {
-                Debug.Log("Insufficient parameters provided for the method.");
+                Debug.Log("Invalid command format.");
                 return;
             }
 
-            // Convert parameter string to the appropriate type
-            typedParams[i - 2] = Convert.ChangeType(data[i], methodParams[i - 2].ParameterType);
+            Type type = Type.GetType(data[0]);
+            if (type == null)
+            {
+                Debug.Log($"Class type '{data[0]}' could not be found.");
+                return;
+            }
+
+            MethodInfo method = type.GetMethod(data[1]);
+            if (method == null)
+            {
+                Debug.Log($"Method type '{data[1]}' could not be found.");
+                return;
+            }
+
+            ParameterInfo[] methodParams = method.GetParameters();
+            object[] typedParams = new object[methodParams.Length];
+            for (int i = 2; i < data.Length; i++)
+            {
+                // Convert the rest into parameters to use for the method
+                if (i >= methodParams.Length + 2)
+                {
+                    Debug.Log("Insufficient parameters provided for the method.");
+                    return;
+                }
+
+                // Convert parameter string to the appropriate type
+                typedParams[i - 2] = Convert.ChangeType(data[i], methodParams[i - 2].ParameterType);
+            }
+
+            try
+            {
+                object result = method.Invoke(instance, typedParams);
+            }
+            catch (TargetException)
+            {
+                Debug.Log($"Error: could not invoke method passed in: {message}");
+            }
+        }
+        catch (FormatException)
+        {
+            Debug.Log($"Couldn't parse the message: {message}");
         }
 
-        try
-        {
-            object result = method.Invoke(instance, typedParams);
-        }
-        catch (TargetException)
-        {
-            Debug.Log($"Error: could not invoke method passed in: {message}");
-        }
 
     }
 

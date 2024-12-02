@@ -20,13 +20,12 @@ public class Player : MonoBehaviour
     public float speedMultiplier { get; private set; }
     public int inventoryCount { get; private set; }
     private Vector2 PlayerInput;
-    private static PriorityQueue<Item, int> inventory = new PriorityQueue<Item, int>();
+    private PriorityQueue<Item, int> inventory = new PriorityQueue<Item, int>();
     public double realCarriedValue { get; private set; }
     public double carriedValue { get; private set; }
     public double carriedValueMultiplier { get; private set; }
     public double balance { get; private set; }
     private PlayerStats statWindow;
-    private int commandCooldown = 5;
 
     [SerializeField]
     private LayerMask canPickUpThisLayer;
@@ -58,41 +57,37 @@ public class Player : MonoBehaviour
         }
 
         Move(PlayerInput);
-        if (commandCooldown > 0) commandCooldown--;
     }
 
     void Update()
     {
-        if (NetworkController.ID != ID || commandCooldown > 0) return;
-
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (NetworkController.ID == ID)
         {
-            // Pickup Item logic
-            if (NetworkController.isHost)
+            if (Input.GetKeyDown(KeyCode.Space))
             {
-                PlayerManager.CheckForItemPickup(ID);
+                // Pickup Item logic
+                if (NetworkController.isHost)
+                {
+                    PlayerManager.CheckForItemPickup(ID);
+                }
+                else
+                {
+                    RequestItemPickup();
+                }
             }
-            else
+            else if (Input.GetKeyDown(KeyCode.E))
             {
-                RequestItemPickup();
+                // Pickup Item logic
+                if (NetworkController.isHost)
+                {
+                    DropItem();
+                    TCPHost.instance.SendDataToClients($"PlayerManager:DropPlayerItem:{ID}");
+                }
+                else
+                {
+                    RequestItemDrop();
+                }
             }
-
-            commandCooldown = 5;
-        }
-        else if (Input.GetKeyDown(KeyCode.E))
-        {
-            // Pickup Item logic
-            if (NetworkController.isHost)
-            {
-                DropItem();
-                TCPHost.instance.SendDataToClients($"PlayerManager:DropPlayerItem:{ID}");
-            }
-            else
-            {
-                RequestItemDrop();
-            }
-
-            commandCooldown = 5;
         }
     }
 
@@ -199,11 +194,14 @@ public class Player : MonoBehaviour
 
     public void DropItem()
     {
-        if (inventory.Count <= 0) return;
+        if (inventory.Count <= 0) {
+            Debug.Log($"{username} doesn't have any items to drop!");
+            return;
+        } 
+
         Item item = inventory.Dequeue();
         item.RespawnItem();
         item.SetPosition(rb2d.position);
-
         Debug.Log($"{username} dropped item {item.ID}");
 
         // Update player info

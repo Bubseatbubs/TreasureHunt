@@ -75,7 +75,7 @@ public class ConnectToHostUI : MonoBehaviour
 
     private static bool IsValidUsername(string s)
     {
-        if (s.Length > 7) {
+        if (s.Length > 7 || s.Length <= 0) {
             return false;
         }
 

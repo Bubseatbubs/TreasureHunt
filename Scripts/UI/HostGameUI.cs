@@ -37,6 +37,11 @@ public class HostGameUI : MonoBehaviour
         ToggleMenu();
         String username = convertFieldToString(UsernameInput);
 
+        if (!IsValidUsername(username)) {
+            Debug.Log("Invalid username typed in.");
+            return;
+        }
+
         int port;
         if (int.TryParse(convertFieldToString(PortInput), out port))
         {
@@ -58,5 +63,22 @@ public class HostGameUI : MonoBehaviour
     {
         string text = tmpComponent.text;
         return text;
+    }
+
+    private static bool IsValidUsername(string s)
+    {
+        if (s.Length > 7 || s.Length <= 0) {
+            return false;
+        }
+
+        foreach (var c in s)
+        {
+            if (!char.IsLetterOrDigit(c))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

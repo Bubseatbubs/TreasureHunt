@@ -43,7 +43,8 @@ public class ItemManager : MonoBehaviour
         string response = "ItemManager:UpdateItemStates:";
         foreach (KeyValuePair<int, Item> i in items)
         {
-            response += i.Key + "|" + i.Value.GetXPosition() + "|" + i.Value.GetYPosition() + "|" + i.Value.pickedUp + "/";
+            response += i.Key + "|" + i.Value.GetXPosition() + "|" + 
+            i.Value.GetYPosition() + "|" + i.Value.pickedUp + "/";
         }
 
         UDPHost.instance.SendDataToClients(response);
@@ -60,10 +61,12 @@ public class ItemManager : MonoBehaviour
         items[id].SetPosition(pos);
         if (items[id].pickedUp && isPickedUp == false)
         {
+            Debug.Log($"Hid item {id}");
             items[id].HideItem();
         }
         else if (!items[id].pickedUp && isPickedUp == true)
         {
+            Debug.Log($"Showed item {id}");
             items[id].RespawnItem();
         }
     }
