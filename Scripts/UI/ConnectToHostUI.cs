@@ -1,16 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
-using UnityEngine.UIElements;
 
 public class ConnectToHostUI : MonoBehaviour
 {
-    public GameObject connectMenu;
-    public TMP_InputField IPAddressInput;
-    public TMP_InputField PortInput;
-    public TMP_InputField UsernameInput;
+    [SerializeField]
+    private GameObject connectMenu;
+
+    [SerializeField]
+    private TMP_InputField IPAddressInput;
+
+    [SerializeField]
+    private TMP_InputField PortInput;
+
+    [SerializeField]
+    private TMP_InputField UsernameInput;
 
     [SerializeField]
     private GameObject networkButtons;
@@ -20,6 +23,17 @@ public class ConnectToHostUI : MonoBehaviour
 
     [SerializeField]
     private GameObject tutorialPanel;
+
+    [SerializeField]
+    private TMP_Dropdown availableGamesDropdown;
+
+    [SerializeField]
+    private TMP_Text connectTypeButtonText;
+
+    [SerializeField]
+    private GameObject refreshButton;
+
+    bool connectByLAN = true;
 
 
     public void ToggleMenu()
@@ -33,28 +47,47 @@ public class ConnectToHostUI : MonoBehaviour
             else
             {
                 connectMenu.SetActive(true);
+                if (connectByLAN)
+                {
+                    NetworkController.instance.SearchForGames();
+                }
             }
         }
     }
 
     public void ConnectToHost()
     {
-        string IPAddress = convertFieldToString(IPAddressInput);
-        string username = convertFieldToString(UsernameInput);
-
-        if (!IsValidUsername(username)) {
-            Debug.Log("Invalid username typed in.");
-            return;
-        }
-
         int port;
-        if (int.TryParse(convertFieldToString(PortInput), out port))
+        string IPAddress = "";
+        if (connectByLAN)
         {
-            Debug.Log($"Parsed value: {port}");
+            port = 6077;
+            IPAddress = AvailableGamesDropdown.instance.GetLobbyIP();
+            if (IPAddress == "")
+            {
+                Debug.Log("Please select a lobby!");
+                return;
+            }
         }
         else
         {
-            Debug.Log("The input could not be parsed as an integer.");
+            IPAddress = convertFieldToString(IPAddressInput);
+            if (int.TryParse(convertFieldToString(PortInput), out port))
+            {
+                Debug.Log($"Parsed value: {port}");
+            }
+            else
+            {
+                Debug.Log("The input could not be parsed as an integer.");
+                return;
+            }
+        }
+
+
+        string username = convertFieldToString(UsernameInput);
+        if (!IsValidUsername(username))
+        {
+            Debug.Log("Invalid username typed in.");
             return;
         }
 
@@ -67,6 +100,28 @@ public class ConnectToHostUI : MonoBehaviour
         waitForHostPanel.SetActive(true);
     }
 
+    public void SwapConnectionType()
+    {
+        if (connectByLAN)
+        {
+            IPAddressInput.gameObject.SetActive(true);
+            PortInput.gameObject.SetActive(true);
+            availableGamesDropdown.gameObject.SetActive(false);
+            refreshButton.SetActive(false);
+            connectTypeButtonText.text = "Direct Connect";
+        }
+        else
+        {
+            IPAddressInput.gameObject.SetActive(false);
+            PortInput.gameObject.SetActive(false);
+            availableGamesDropdown.gameObject.SetActive(true);
+            refreshButton.SetActive(true);
+            connectTypeButtonText.text = "Connect Nearby";
+        }
+
+        connectByLAN = !connectByLAN;
+    }
+
     private string convertFieldToString(TMP_InputField field)
     {
         string text = field.text;
@@ -75,7 +130,8 @@ public class ConnectToHostUI : MonoBehaviour
 
     private static bool IsValidUsername(string s)
     {
-        if (s.Length > 7 || s.Length <= 0) {
+        if (s.Length > 12 || s.Length <= 0)
+        {
             return false;
         }
 

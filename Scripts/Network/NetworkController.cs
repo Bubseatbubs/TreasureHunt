@@ -18,6 +18,7 @@ public class NetworkController : MonoBehaviour
     UDPHost udpHost;
     TCPConnection tcpClient;
     UDPConnection udpClient;
+    UDPLobbyConnection udpLobbyClient;
     public String username { get; private set; }
 
     // Singleton
@@ -35,7 +36,7 @@ public class NetworkController : MonoBehaviour
 
     /* 
     Begins a lobby as the host client in the P2P connection.
-    Host client acts similar to a Host.
+    Host client acts similar to a Server.
     Handles keeping all clients synchronized.
     Host's ID is always 0.
     */
@@ -58,6 +59,7 @@ public class NetworkController : MonoBehaviour
         // Generate Seed
         RandomSeed.instance.InitializeSeed();
         username = name;
+        ID = 0;
 
         Debug.Log("Hosted game!");
         SystemManager.instance.InitializeGame();
@@ -102,6 +104,7 @@ public class NetworkController : MonoBehaviour
         username = name;
         Debug.Log($"Connected to {hostIP}:{port}");
         SystemManager.instance.InitializeGame();
+        UDPLobbyConnection.instance.Disconnect(); // No need to check for lobbies now
         return true; // Returns true if connecting was successful
     }
 
@@ -113,6 +116,8 @@ public class NetworkController : MonoBehaviour
             PlayerManager.instance.BeginSendingHostPositionsToClients();
             EnemyManager.instance.BeginSendingHostPositionsToClients();
             ItemManager.instance.BeginSendingHostPositionsToClients();
+
+            UDPHost.instance.StopBroadcasting();
         }
         else
         {
@@ -122,6 +127,17 @@ public class NetworkController : MonoBehaviour
         }
 
         SystemManager.instance.StartGame(username);
+    }
+
+    public void SearchForGames()
+    {
+        if (udpLobbyClient == null)
+        {
+            udpLobbyClient = gameObject.AddComponent<UDPLobbyConnection>();
+            udpLobbyClient.Instantiate(6077);
+        }
+        
+        udpLobbyClient.RequestAddressFromHosts();
     }
 
     public void DisconnectFromGame()
@@ -217,9 +233,9 @@ public class NetworkController : MonoBehaviour
                 Debug.Log($"Error: could not invoke method passed in: {message}");
             }
         }
-        catch (FormatException)
+        catch (NullReferenceException)
         {
-            Debug.Log($"Couldn't parse the message: {message}");
+            Debug.LogWarning($"Couldn't parse the message: {message}");
         }
 
 

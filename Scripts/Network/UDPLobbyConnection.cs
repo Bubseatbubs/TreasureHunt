@@ -14,9 +14,10 @@ public class UDPLobbyConnection : MonoBehaviour
     private IPEndPoint broadcastEndPoint;
     public static UDPLobbyConnection instance;
     private bool isUDPPortActive = false;
+    private int port;
 
     // Singleton
-    public void Instantiate(string hostIP, int port)
+    public void Instantiate(int port)
     {
         if (instance)
         {
@@ -28,11 +29,17 @@ public class UDPLobbyConnection : MonoBehaviour
 
         lobbyClient = new UdpClient();
         lobbyClient.EnableBroadcast = true;
+
+        lobbyClient.BeginReceive(OnReceiveData, null);
+        this.port = port;
         broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, port);
+        isUDPPortActive = true;
     }
 
     public void Disconnect()
     {
+        lobbyClient.EnableBroadcast = false;
+        isUDPPortActive = false;
         lobbyClient?.Close();
         instance = null;
         Destroy(this);
@@ -40,6 +47,8 @@ public class UDPLobbyConnection : MonoBehaviour
 
     public void RequestAddressFromHosts()
     {
+        Debug.Log("Sending request to broadcast");
+        AvailableGamesDropdown.instance.ClearItems();
         String command = "UDP_TreasureHunt:RequestAddress";
         byte[] data = Encoding.UTF8.GetBytes(command);
         lobbyClient.Send(data, data.Length, broadcastEndPoint);
@@ -55,10 +64,30 @@ public class UDPLobbyConnection : MonoBehaviour
 
     void OnReceiveData(IAsyncResult result)
     {
-        byte[] data = lobbyClient.EndReceive(result, ref broadcastEndPoint);
-        string message = Encoding.UTF8.GetString(data);
-        Debug.Log($"Received UDP: {message}");
-        NetworkController.AddData(message);
+        try
+        {
+            IPEndPoint senderEndPoint = new IPEndPoint(IPAddress.Any, 0);
+
+            // Receive data
+            byte[] data = lobbyClient.EndReceive(result, ref senderEndPoint);
+            string message = Encoding.UTF8.GetString(data);
+            Debug.Log($"Received UDP message: {message}");
+            Debug.Log($"Received answer from {senderEndPoint.Address}: {message}");
+            
+            // Add IP Address to dropdown list
+            if (message.Contains("UDP_TreasureHunt:SendConnectionInfo"))
+            {
+                string[] splitUp = message.Split(':');
+                string username = splitUp[2];
+                Debug.Log($"Adding {senderEndPoint.Address} who has a username of {username}");
+                AvailableGamesDropdown.instance.AddItem($"{username}'s Lobby", senderEndPoint.Address);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+
     }
 
     void OnApplicationQuit()

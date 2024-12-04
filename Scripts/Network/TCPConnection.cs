@@ -96,6 +96,12 @@ public class TCPConnection : MonoBehaviour
             Debug.Log($"Connection to host was lost.");
             MainThreadDispatcher.instance.Enqueue(() => NetworkController.instance.DisconnectFromGame());
         }
+        catch (ThreadAbortException)
+        {
+            // If client disconnects while thread was in the middle of running
+            Debug.Log($"Connection to host was forcibly closed by client.");
+            MainThreadDispatcher.instance.Enqueue(() => NetworkController.instance.DisconnectFromGame());
+        }
 
     }
 

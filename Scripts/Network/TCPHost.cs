@@ -161,6 +161,7 @@ public class TCPHost : MonoBehaviour
 
     public void Disconnect()
     {
+        nextID = 0;
         SendDataToClients("TCP_TreasureHunt:Disconnect");
         listenerThread.Abort();
         listener?.Stop();

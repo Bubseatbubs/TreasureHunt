@@ -14,10 +14,9 @@ public class UDPHost : MonoBehaviour
     public static UDPHost instance;
     private UdpClient udpServer;
     private HashSet<IPEndPoint> connectedClients;
-    
+    private IPEndPoint broadcastEndPoint;
     private bool isUDPPortActive;
     private bool isUDPPortBroadcasting;
-    private string localIPV4;
 
     /* 
     Begins a lobby as the host client in the P2P connection.
@@ -43,10 +42,11 @@ public class UDPHost : MonoBehaviour
 
             udpServer.BeginReceive(OnReceiveData, null);
             udpServer.EnableBroadcast = true;
-            IPEndPoint broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, port);
+            broadcastEndPoint = new IPEndPoint(IPAddress.Broadcast, port);
             Debug.Log("Hosting a UDP port");
 
             isUDPPortActive = true;
+            isUDPPortBroadcasting = true;
         }
         catch (SocketException)
         {
@@ -68,9 +68,24 @@ public class UDPHost : MonoBehaviour
         byte[] data = udpServer.EndReceive(result, ref clientEndPoint);
 
         string message = Encoding.UTF8.GetString(data);
-        // Debug.Log($"Received UDP message: {message}");
+        Debug.Log($"Received UDP message: {message}");
 
-        if (message.Equals("UDP_TreasureHunt:Connect") || !connectedClients.Contains(clientEndPoint))
+        if (message.Equals("UDP_TreasureHunt:RequestAddress") && isUDPPortBroadcasting)
+        {
+            // A client is broadcasting and asking for address
+            // Send address back on broadcast
+            Debug.Log("Broadcast message received, sending back address");
+            String command = $"UDP_TreasureHunt:SendConnectionInfo:{NetworkController.instance.username}";
+            byte[] broadcastData = Encoding.UTF8.GetBytes(command);
+            udpServer.Send(broadcastData, broadcastData.Length, clientEndPoint);
+            return;
+        }
+        else if (message.Contains("UDP_TreasureHunt:SendConnectionInfo"))
+        {
+            // Received either own connection info or other hosts, throw away
+            return;
+        }
+        else if (message.Equals("UDP_TreasureHunt:Connect") || !connectedClients.Contains(clientEndPoint))
         {
             Debug.Log($"Added client {clientEndPoint} to endpoint list");
             connectedClients.Add(clientEndPoint);
@@ -82,7 +97,7 @@ public class UDPHost : MonoBehaviour
             RemoveClient(clientEndPoint);
             return;
         }
-
+        
         NetworkController.AddData(message);
         SendDataToClients(message);
     }

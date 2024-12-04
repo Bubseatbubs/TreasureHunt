@@ -138,11 +138,17 @@ public class PlayerManager : MonoBehaviour
         string[] playerData = message.Split('/');
         for (int i = 0; i < playerData.Length - 1; i++)
         {
-            string[] currentPlayerData = playerData[i].Split('|');
-            int playerId = int.Parse(currentPlayerData[0]);
-            float x = float.Parse(currentPlayerData[1]);
-            float y = float.Parse(currentPlayerData[2]);
-            UpdatePlayerPosition(playerId, x, y);
+            try {
+                string[] currentPlayerData = playerData[i].Split('|');
+                int playerId = int.Parse(currentPlayerData[0]);
+                float x = float.Parse(currentPlayerData[1]);
+                float y = float.Parse(currentPlayerData[2]);
+                UpdatePlayerPosition(playerId, x, y);
+            }
+            catch(Exception)
+            {
+                Debug.LogWarning($"Couldn't parse {playerData[i]}");
+            }
         }
     }
 
