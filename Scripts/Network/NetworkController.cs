@@ -54,12 +54,12 @@ public class NetworkController : MonoBehaviour
         tcpHost.Instantiate(port);
         udpHost.Instantiate(port);
 
-        isHost = true;
-
         // Generate Seed
-        RandomSeed.instance.InitializeSeed();
         username = name;
         ID = 0;
+        isHost = true;
+
+        RandomSeed.instance.InitializeSeed();
 
         Debug.Log("Hosted game!");
         SystemManager.instance.InitializeGame();

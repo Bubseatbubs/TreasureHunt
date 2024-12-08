@@ -21,7 +21,7 @@ public class Item : MonoBehaviour
         // Add random attributes to the item
         value = UnityEngine.Random.Range(10, 50);
         weight = Math.Round(value * UnityEngine.Random.Range(0.9f, 1.1f), 2);
-        this.transform.localScale = new Vector3((float) weight / 50f, (float) weight / 50f, 1);
+        this.transform.localScale = new Vector3((float) weight / 5f, (float) weight / 5f, 1);
     }
 
     public void AssignID(int id)

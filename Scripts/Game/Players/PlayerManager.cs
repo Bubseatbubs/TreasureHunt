@@ -318,11 +318,16 @@ public class PlayerManager : MonoBehaviour
     public void Reset()
     {
         CancelInvoke();
-
         clientPlayer = null;
         foreach (KeyValuePair<int, Player> player in players)
         {
-            player.Value.Delete();
+            try {
+                player.Value.Delete();
+            }
+            catch (NullReferenceException)
+            {
+                Debug.Log("Couldn't find player");
+            }
         }
 
         players.Clear();

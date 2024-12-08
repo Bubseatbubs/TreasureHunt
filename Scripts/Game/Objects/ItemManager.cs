@@ -30,8 +30,7 @@ public class ItemManager : MonoBehaviour
 
     public static void CreateNewItem(Vector2 spawnPosition)
     {
-        Quaternion rotation = Quaternion.Euler(0, 0, Random.Range(0.0f, 360.0f));
-        Item item = Instantiate(itemTemplate, spawnPosition, rotation);
+        Item item = Instantiate(itemTemplate, spawnPosition, Quaternion.identity);
         item.AssignID(nextItemID);
         items.Add(nextItemID, item);
         Debug.Log($"Create item object with ID of {nextItemID}");

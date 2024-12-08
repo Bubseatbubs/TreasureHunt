@@ -27,6 +27,13 @@ public class Player : MonoBehaviour
     public double balance { get; private set; }
     private PlayerStats statWindow;
 
+    float rotationSpeed = 15f;
+    float timeCount = 0.0f;
+
+    private static readonly Quaternion LeftRotation = Quaternion.Euler(0f, 180f, 0f);
+    private static readonly Quaternion RightRotation = Quaternion.Euler(0f, 0f, 0f);
+    bool facingRight;
+
     [SerializeField]
     private LayerMask canPickUpThisLayer;
 
@@ -46,6 +53,7 @@ public class Player : MonoBehaviour
         weight = 0;
         inventoryCount = 0;
         carriedValue = 0;
+        facingRight = true;
     }
 
     // Update is called once per frame
@@ -55,6 +63,17 @@ public class Player : MonoBehaviour
         {
             PlayerInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
         }
+
+        if (facingRight && transform.rotation != RightRotation)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, RightRotation, Time.deltaTime * rotationSpeed);
+        }
+        else if (!facingRight && transform.rotation != LeftRotation)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, LeftRotation, Time.deltaTime * rotationSpeed);
+        }
+
+        timeCount = timeCount + Time.deltaTime;
 
         Move(PlayerInput);
     }
@@ -95,6 +114,18 @@ public class Player : MonoBehaviour
     {
         Vector2 moveForce = input * (moveSpeed * (1 - speedMultiplier));
         ApplyForce(moveForce);
+
+        // Rotate player
+        if (moveForce.x < 0)
+        {
+            // Turn left
+            facingRight = false;
+        }
+        else if (moveForce.x > 0)
+        {
+            // Turn right
+            facingRight = true;
+        }
     }
 
     void ApplyForce(Vector2 moveForce)
