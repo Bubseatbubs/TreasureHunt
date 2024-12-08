@@ -36,6 +36,9 @@ public class UDPLobbyConnection : MonoBehaviour
         isUDPPortActive = true;
     }
 
+    /* 
+    Stop broadcasting and delete this instance
+    */
     public void Disconnect()
     {
         lobbyClient.EnableBroadcast = false;
@@ -45,6 +48,9 @@ public class UDPLobbyConnection : MonoBehaviour
         Destroy(this);
     }
 
+    /* 
+    Sends a broadcast to ask UDPhosts for the address
+    */
     public void RequestAddressFromHosts()
     {
         Debug.Log("Sending request to broadcast");
@@ -62,6 +68,10 @@ public class UDPLobbyConnection : MonoBehaviour
         }
     }
 
+    /* 
+    Adds the lobby information to a list of available games upon receiving
+    the command SendConnectionInfo
+     */
     void OnReceiveData(IAsyncResult result)
     {
         try

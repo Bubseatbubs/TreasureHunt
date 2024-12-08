@@ -15,7 +15,9 @@ public class UDPConnection : MonoBehaviour
     public static UDPConnection instance;
     private bool isUDPPortActive = false;
 
-    // Singleton
+    /* 
+    Creates a new UDPClient that connects to the server.
+    */
     public void Instantiate(string hostIP, int port)
     {
         if (instance)
@@ -35,13 +37,19 @@ public class UDPConnection : MonoBehaviour
         isUDPPortActive = true;
     }
 
-    public void Disconnect()
+    /* 
+    Resets the UDPConnection instance for future use.
+    */
+    public void Delete()
     {
         client?.Close();
         instance = null;
         Destroy(this);
     }
 
+    /* 
+    Sends data to the UDP host.
+    */
     public void SendDataToHost(string message)
     {
         byte[] data = Encoding.UTF8.GetBytes(message);
@@ -49,15 +57,10 @@ public class UDPConnection : MonoBehaviour
         client.Send(data, data.Length, serverEndPoint);
     }
 
-    void FixedUpdate()
-    {
-        if (isUDPPortActive)
-        {
-            client.BeginReceive(OnReceiveData, null);
-        }
-    }
-
-    void OnReceiveData(IAsyncResult result)
+    /*
+    Hands data received from a host to the NetworkController.
+    */
+    private void OnReceiveData(IAsyncResult result)
     {
         byte[] data = client.EndReceive(result, ref serverEndPoint);
         string message = Encoding.UTF8.GetString(data);
@@ -65,8 +68,23 @@ public class UDPConnection : MonoBehaviour
         NetworkController.AddData(message);
     }
 
+    /*
+    Runs every frame by Unity. 
+    */
+    void FixedUpdate()
+    {
+        // If the UDP socket is running, check for new data from the socket
+        if (isUDPPortActive)
+        {
+            client.BeginReceive(OnReceiveData, null);
+        }
+    }
+
+    /* 
+    Runs when Unity detects that the game has been quit out of 
+    */
     void OnApplicationQuit()
     {
-        Disconnect();
+        Delete();
     }
 }

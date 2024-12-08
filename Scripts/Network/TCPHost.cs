@@ -52,16 +52,23 @@ public class TCPHost : MonoBehaviour
         }
     }
 
+    /* 
+    Sends a message to all connected clients
+    */
     public void SendDataToClients(string message)
     {
         inputBuffer = Encoding.UTF8.GetBytes(message);
         foreach (KeyValuePair<int, NetworkStream> stream in streams)
         {
             stream.Value.Write(inputBuffer, 0, inputBuffer.Length);
-            stream.Value.Flush();
+            stream.Value.Flush(); // Ensure it is sent immediately
         }
     }
 
+    /* 
+    Sends a message to all connected clients, except one. This can be specified
+    by setting the ignoreID.
+    */
     public void SendDataToClients(string message, int ignoreID)
     {
         inputBuffer = Encoding.UTF8.GetBytes(message);
@@ -82,6 +89,9 @@ public class TCPHost : MonoBehaviour
         }
     }
 
+    /* 
+    Removes a client from the connection list.
+    */
     public void RemoveClient(int ID)
     {
         connectedPeers.Remove(ID);
@@ -89,6 +99,9 @@ public class TCPHost : MonoBehaviour
         Debug.Log($"Removed client {ID}'s TCP connection");
     }
 
+    /* 
+    A thread that constantly accepts new client connections as they come in.
+    */
     private void AcceptClientConnections()
     {
         Debug.Log("Preparing to accept new connections");
@@ -102,6 +115,11 @@ public class TCPHost : MonoBehaviour
         }
     }
 
+    /* 
+    Initializes a client to the system by giving them an ID, starting a
+    thread to receive their messages from, and add them to the list of
+    connections.
+    */
     private void InitializeClient(TcpClient peerClient)
     {
         NetworkStream peerStream = peerClient.GetStream();
@@ -128,6 +146,10 @@ public class TCPHost : MonoBehaviour
         peerStream.Flush();
     }
 
+    /* 
+    A thread created for each connection. Handles messages received by a specific
+    client and passes their messages to the NetworkController.
+    */
     private void HandlePeer(NetworkStream peerStream, int peerID)
     {
         byte[] peerBuffer = new byte[4096];
@@ -159,6 +181,9 @@ public class TCPHost : MonoBehaviour
         }
     }
 
+    /* 
+    Disconnects the host from all other clients and destroys this instance.
+    */
     public void Disconnect()
     {
         nextID = 0;
@@ -169,6 +194,9 @@ public class TCPHost : MonoBehaviour
         Destroy(this);
     }
 
+    /* 
+    Runs when Unity detects that the game has been quit out of 
+    */
     private void OnApplicationQuit()
     {
         Disconnect();

@@ -8,6 +8,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Reflection;
 
+/// <summary>
+/// Class <c>NetworkController</c> handles incoming data from TCP and UDP sockets,
+/// and helps translate the data into game logic.
+/// Additionally, it handles instantiating the TCP/UDP sockets based on whether
+/// the player is a host or client.
+/// 
+/// </summary>
 public class NetworkController : MonoBehaviour
 {
     private static Queue<String> commands = new Queue<String>();
@@ -21,7 +28,9 @@ public class NetworkController : MonoBehaviour
     UDPLobbyConnection udpLobbyClient;
     public String username { get; private set; }
 
-    // Singleton
+    /* 
+    Unity runs Awake() on startup.
+    */
     void Awake()
     {
         if (instance)
@@ -90,12 +99,13 @@ public class NetworkController : MonoBehaviour
         }
         catch (Exception)
         {
-            tcpClient.Disconnect();
-            udpClient.Disconnect();
+            // There was an issue starting the TCP or UDP client
+            tcpClient.Delete();
+            udpClient.Delete();
 
             tcpClient = null;
             udpClient = null;
-            Debug.LogWarning("Error connecting to host! Make sure you typed the IP address correctly.");
+            Debug.LogWarning("Error connecting to host!");
             return false;
         }
 
@@ -108,6 +118,11 @@ public class NetworkController : MonoBehaviour
         return true; // Returns true if connecting was successful
     }
 
+    /*
+    Starts the game for the player.
+    Network logic is handled first, and then handed to the SystemManager to 
+    set up the game.
+    */
     public void StartGame()
     {
         if (isHost)
@@ -129,6 +144,9 @@ public class NetworkController : MonoBehaviour
         SystemManager.instance.StartGame(username);
     }
 
+    /* 
+    Start searching for games on the network.
+    */
     public void SearchForGames()
     {
         if (udpLobbyClient == null)
@@ -140,6 +158,11 @@ public class NetworkController : MonoBehaviour
         udpLobbyClient.RequestAddressFromHosts();
     }
 
+    /* 
+    Disconnect from the current game. 
+    As a host, the entire game will go down for all players.
+    As a client, you will leave the game, but other players will continue to play.
+    */
     public void DisconnectFromGame()
     {
         Debug.Log("Running disconnect from game");
@@ -155,7 +178,7 @@ public class NetworkController : MonoBehaviour
         else
         {
             tcpClient.DisconnectFromHost();
-            udpClient.Disconnect();
+            udpClient.Delete();
 
             tcpClient = null;
             udpClient = null;
@@ -168,9 +191,15 @@ public class NetworkController : MonoBehaviour
         Debug.Log("Finished");
     }
 
+    /*
+    Runs every frame by Unity. 
+    */
     void FixedUpdate()
     {
-        // Only clear out commands that arrived this frame
+        // Process all commands that came in.
+        // By running this in FixedUpdate(), we can ensure that data is only
+        // processed at the start of a frame, rather than between a frame.
+
         int commandLength = commands.Count;
         for (int i = 0; i < commandLength; i++)
         {
@@ -180,9 +209,10 @@ public class NetworkController : MonoBehaviour
         }
     }
 
-    // Run HandleData every game frame to ensure that commands are synchronized
-    // with the game itself
-    // HandleData takes a message and converts it into a static method.
+    /*  
+    Takes in a string message from a socket and translates it into a
+    method to run.
+    */
     void HandleData(string message)
     {
         // Parse incoming data, send to relevant managers
@@ -241,16 +271,23 @@ public class NetworkController : MonoBehaviour
 
     }
 
+    /* 
+    Adds data to the command queue to run on the next frame
+    */
     public static void AddData(string message)
     {
         commands.Enqueue(message);
     }
 
+    /* 
+    Remove a player from the game 
+    */
     public static void RemovePlayer(int ID)
     {
         PlayerManager.instance.RemovePlayer(ID);
         if (isHost)
         {
+            // Send out remove message to all other clients
             TCPHost.instance.SendDataToClients($"NetworkController:RemovePlayer:{ID}");
         }
     }

@@ -19,10 +19,10 @@ public class UDPHost : MonoBehaviour
     private bool isUDPPortBroadcasting;
 
     /* 
-    Begins a lobby as the host client in the P2P connection.
-    Host client acts similar to a server.
-    Handles keeping all clients synchronized.
-    Host's ID is always 0.
+    Begins a UDP host.
+    UDP host is in charge of sending constant game updates to players.
+    Additionally, player updates that would require constant updates like
+    player movement are handled by the UDP host.
     */
     public void Instantiate(int port)
     {
@@ -54,15 +54,10 @@ public class UDPHost : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
-    {
-        if (isUDPPortActive)
-        {
-            udpServer.BeginReceive(OnReceiveData, null);
-        }
-    }
-
-    void OnReceiveData(IAsyncResult result)
+    /*
+    Hands data received from a client to the NetworkController.
+    */
+    private void OnReceiveData(IAsyncResult result)
     {
         IPEndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
         byte[] data = udpServer.EndReceive(result, ref clientEndPoint);
@@ -97,11 +92,14 @@ public class UDPHost : MonoBehaviour
             RemoveClient(clientEndPoint);
             return;
         }
-        
+
         NetworkController.AddData(message);
         SendDataToClients(message);
     }
 
+    /* 
+    Sends data to the UDP client.
+    */
     public void SendDataToClients(string message)
     {
         byte[] data = Encoding.UTF8.GetBytes(message);
@@ -112,11 +110,17 @@ public class UDPHost : MonoBehaviour
         }
     }
 
+    /* 
+    Removes a client from the connection list.
+    */
     public void RemoveClient(IPEndPoint clientEndPoint)
     {
         connectedClients.Remove(clientEndPoint);
     }
 
+    /* 
+    Destroys this instance.
+    */
     public void Disconnect()
     {
         isUDPPortActive = false;
@@ -125,14 +129,18 @@ public class UDPHost : MonoBehaviour
         Destroy(this);
     }
 
-    public void StartBroadcasting()
-    {
-        isUDPPortBroadcasting = true;
-    }
-
     public void StopBroadcasting()
     {
         isUDPPortBroadcasting = false;
+    }
+
+    void FixedUpdate()
+    {
+        // If the UDP socket is running, check for new data from the socket
+        if (isUDPPortActive)
+        {
+            udpServer.BeginReceive(OnReceiveData, null);
+        }
     }
 
     void OnApplicationQuit()

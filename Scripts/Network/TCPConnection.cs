@@ -15,13 +15,16 @@ public class TCPConnection : MonoBehaviour
     public static TCPConnection instance;
     Thread hostThread;
 
-    // Singleton
+    /* 
+    Creates a new TCPClient that connects to a server.
+    The client will gain an ID based on what the server sends it back.
+    */
     public void Instantiate(string hostIP, int port)
     {
         if (instance)
         {
             Debug.Log("TCPConnection Instance already exists, replacing");
-            instance.Disconnect();
+            instance.Delete();
             instance = this;
         }
 
@@ -52,13 +55,19 @@ public class TCPConnection : MonoBehaviour
         hostThread.Start();
     }
 
+    /* 
+    Disconnects from the host.
+    */
     public void DisconnectFromHost()
     {
         SendDataToHost("TCP_TreasureHunt:Disconnect");
-        Disconnect();
+        Delete();
     }
 
-    public void Disconnect()
+    /* 
+    Resets the TCPConnection instance for future use.
+    */
+    public void Delete()
     {
         hostThread?.Abort();
         host?.Close();
@@ -66,6 +75,10 @@ public class TCPConnection : MonoBehaviour
         Destroy(this);
     }
 
+    /* 
+    Checks for data from the host.
+    Data received from the host is passed to the NetworkController to be parsed.
+    */
     private void HandleHost(NetworkStream peerStream, int peerID)
     {
         byte[] peerBuffer = new byte[4096];
@@ -77,6 +90,7 @@ public class TCPConnection : MonoBehaviour
                 int bytesRead = peerStream.Read(peerBuffer, 0, peerBuffer.Length);
                 if (bytesRead == 0) break;
 
+                // Read the message sent
                 string message = Encoding.UTF8.GetString(peerBuffer, 0, bytesRead);
                 Debug.Log($"Received TCP message from peer {peerID}: " + message);
 
@@ -86,7 +100,6 @@ public class TCPConnection : MonoBehaviour
                 }
 
                 // Handle received data
-                // Use main thread as Unity doesn't allow API to be used on thread
                 NetworkController.AddData(message);
             }
         }
@@ -105,6 +118,9 @@ public class TCPConnection : MonoBehaviour
 
     }
 
+    /* 
+    Sends a message to the host
+    */
     public void SendDataToHost(string message)
     {
         byte[] data = Encoding.UTF8.GetBytes(message);
@@ -112,6 +128,13 @@ public class TCPConnection : MonoBehaviour
         hostStream.Flush();
     }
 
+    /* 
+    Sends a message to the host, stops the HandleHost thread, and blocks until the
+    host has replied back. 
+
+    Upon receiving a reply, this method returns the message that it received from
+    the host, and resumes the HandleHost thread.
+    */
     public string SendAndReceiveDataFromHost(string message)
     {
         // Temporarily stop host thread to get specific data
@@ -134,6 +157,9 @@ public class TCPConnection : MonoBehaviour
         return receivedData;
     }
 
+    /* 
+    Runs when Unity detects that the game has been quit out of 
+    */
     private void OnApplicationQuit()
     {
         DisconnectFromHost();
