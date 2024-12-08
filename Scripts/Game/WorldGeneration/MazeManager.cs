@@ -30,6 +30,9 @@ public class MazeManager : MonoBehaviour
     [SerializeField]
     private LayerMask doNotSpawnItemsOn;
 
+    [SerializeField]
+    private GameObject spawnArea;
+
     public static MazeManager instance;
 
     private MazeCell[,] _mazeGrid;
@@ -69,6 +72,8 @@ public class MazeManager : MonoBehaviour
         // Handle things that rely on map generation here
         ItemManager.instance.CreateItems(100);
         EnemyManager.instance.CreateEnemies(8);
+
+        spawnArea.SetActive(true);
 
         DrawConnections(); // For debug visualization
     }
@@ -380,6 +385,7 @@ public class MazeManager : MonoBehaviour
         }
 
         rooms.Clear();
+        spawnArea.SetActive(false);
         _mazeGrid = null;
     }
 }

@@ -28,7 +28,6 @@ public class Player : MonoBehaviour
     private PlayerStats statWindow;
 
     float rotationSpeed = 15f;
-    float timeCount = 0.0f;
 
     private static readonly Quaternion LeftRotation = Quaternion.Euler(0f, 180f, 0f);
     private static readonly Quaternion RightRotation = Quaternion.Euler(0f, 0f, 0f);
@@ -39,6 +38,9 @@ public class Player : MonoBehaviour
 
     [SerializeField]
     private TextMeshProUGUI usernameDisplay;
+
+    [SerializeField]
+    private Canvas usernameCanvas;
 
     // Start is called before the first frame update
     void Start()
@@ -54,9 +56,10 @@ public class Player : MonoBehaviour
         inventoryCount = 0;
         carriedValue = 0;
         facingRight = true;
+        usernameCanvas.transform.SetParent(null);
+        usernameDisplay.transform.rotation = Quaternion.identity;
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
         if (NetworkController.ID == ID)
@@ -72,8 +75,6 @@ public class Player : MonoBehaviour
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, LeftRotation, Time.deltaTime * rotationSpeed);
         }
-
-        timeCount = timeCount + Time.deltaTime;
 
         Move(PlayerInput);
     }
@@ -110,12 +111,18 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void Move(Vector2 input)
+    void LateUpdate()
+    {
+        // Keep the text above the player but free from rotation
+        usernameCanvas.transform.position = transform.position + new Vector3(0, 0.6f, 0);
+    }
+
+    void Move(Vector2 input)
     {
         Vector2 moveForce = input * (moveSpeed * (1 - speedMultiplier));
         ApplyForce(moveForce);
 
-        // Rotate player
+        // Check direction of player
         if (moveForce.x < 0)
         {
             // Turn left
@@ -225,10 +232,11 @@ public class Player : MonoBehaviour
 
     public void DropItem()
     {
-        if (inventory.Count <= 0) {
+        if (inventory.Count <= 0)
+        {
             Debug.Log($"{username} doesn't have any items to drop!");
             return;
-        } 
+        }
 
         Item item = inventory.Dequeue();
         item.RespawnItem();
@@ -340,6 +348,7 @@ public class Player : MonoBehaviour
 
     public void Delete()
     {
+        Destroy(usernameCanvas);
         if (NetworkController.ID == ID)
         {
             statWindow.ResetStats();

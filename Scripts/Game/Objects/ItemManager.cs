@@ -12,7 +12,7 @@ public class ItemManager : MonoBehaviour
     private static int nextItemID = 0;
 
     /*
-    Singleton Pattern: Make sure there's only one PlayerManager
+    Singleton Pattern: Make sure there's only one ItemManager
     */
     void Awake()
     {
@@ -35,18 +35,6 @@ public class ItemManager : MonoBehaviour
         items.Add(nextItemID, item);
         Debug.Log($"Create item object with ID of {nextItemID}");
         nextItemID++;
-    }
-
-    public void SendItemStates()
-    {
-        string response = "ItemManager:UpdateItemStates:";
-        foreach (KeyValuePair<int, Item> i in items)
-        {
-            response += i.Key + "|" + i.Value.GetXPosition() + "|" + 
-            i.Value.GetYPosition() + "|" + i.Value.pickedUp + "/";
-        }
-
-        UDPHost.instance.SendDataToClients(response);
     }
 
     public static void UpdateItemState(int id, Vector2 pos, bool isPickedUp)
@@ -99,20 +87,6 @@ public class ItemManager : MonoBehaviour
         {
             // Create item
             CreateNewItem(MazeManager.instance.GetRandomSpawnPosition());
-        }
-    }
-
-    public void BeginSendingHostPositionsToClients()
-    {
-        InvokeRepeating("SendHostPositionsToClients", 1f, 0.5f);
-    }
-
-    private void SendHostPositionsToClients()
-    {
-        // Send player movement data to clients
-        if (UDPHost.instance != null)
-        {
-            SendItemStates();
         }
     }
 

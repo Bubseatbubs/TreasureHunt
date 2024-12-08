@@ -23,16 +23,20 @@ public class Enemy : MonoBehaviour
     [SerializeField]
     private LayerMask targetLayers;
 
-    [SerializeField]
-    private float rotationSpeed;
-
     public MazeCell lastCellEntered;
+    float rotationSpeed = 15f;
+
+    private static readonly Quaternion LeftRotation = Quaternion.Euler(0f, 180f, 0f);
+    private static readonly Quaternion RightRotation = Quaternion.Euler(0f, 0f, 0f);
+    bool facingRight;
+    float lastPosition;
 
     void Start()
     {
         speed = UnityEngine.Random.Range(3f, 4f);
-        scale = UnityEngine.Random.Range(0.4f, 2f);
+        scale = UnityEngine.Random.Range(2f, 4f);
         this.transform.localScale = new Vector3(scale, scale, 1);
+        facingRight = true;
 
         MoveToNewPositionInMaze();
     }
@@ -59,6 +63,7 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        lastPosition = rb2d.position.x;
         if (!isAngry)
         {
             RoamingState();
@@ -81,6 +86,36 @@ public class Enemy : MonoBehaviour
         }
     }
 
+    void LateUpdate()
+    {
+        RotateEnemy(lastPosition);
+    }
+
+    private void RotateEnemy(float lastPosition)
+    {
+        float offsetPosition = rb2d.position.x - lastPosition;
+
+        if (offsetPosition < 0)
+        {
+            // Turn left
+            facingRight = false;
+        }
+        else if (offsetPosition > 0)
+        {
+            // Turn right
+            facingRight = true;
+        }
+
+        if (facingRight && transform.rotation != RightRotation)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, RightRotation, Time.deltaTime * rotationSpeed);
+        }
+        else if (!facingRight && transform.rotation != LeftRotation)
+        {
+            transform.rotation = Quaternion.Slerp(transform.rotation, LeftRotation, Time.deltaTime * rotationSpeed);
+        }
+    }
+
     void RoamingState()
     {
         float step = speed * Time.deltaTime;
@@ -93,7 +128,6 @@ public class Enemy : MonoBehaviour
 
         transform.position = Vector2.MoveTowards(transform.position, moveCommands.Peek(), step);
         rb2d.position = Vector2.MoveTowards(rb2d.position, moveCommands.Peek(), step);
-        rb2d.rotation += rotationSpeed;
 
         if (Mathf.Approximately(transform.position.x, moveCommands.Peek().x) &&
         Mathf.Approximately(transform.position.y, moveCommands.Peek().y))
@@ -116,8 +150,6 @@ public class Enemy : MonoBehaviour
         }
 
         Vector2 direction = (closestPlayerPosition - (Vector2)transform.position).normalized;
-        rb2d.rotation += rotationSpeed * 5;
-
         rb2d.velocity = direction * speed * 1.5f;
     }
 

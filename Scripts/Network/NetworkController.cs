@@ -127,10 +127,9 @@ public class NetworkController : MonoBehaviour
     {
         if (isHost)
         {
-            // Start sending player positions to clients
+            // Start sending positions to clients
             PlayerManager.instance.BeginSendingHostPositionsToClients();
             EnemyManager.instance.BeginSendingHostPositionsToClients();
-            ItemManager.instance.BeginSendingHostPositionsToClients();
 
             UDPHost.instance.StopBroadcasting();
         }
