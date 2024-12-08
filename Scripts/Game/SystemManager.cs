@@ -99,6 +99,7 @@ public class SystemManager : MonoBehaviour
     {
         gameBegan = false;
 
+        PlayerManager.instance.UpdateScoreboard();
         Player winner = PlayerManager.instance.GetHighestScoringPlayer();
         if (NetworkController.isHost)
         {

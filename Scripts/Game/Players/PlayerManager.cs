@@ -4,6 +4,15 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
+using System.IO;
+using Newtonsoft.Json;
+
+[System.Serializable]
+public class PlayerData
+{
+    public string playerName;
+    public float balance;
+}
 
 public class PlayerManager : MonoBehaviour
 {
@@ -17,6 +26,7 @@ public class PlayerManager : MonoBehaviour
     private static Player clientPlayer;
     Vector2 Input;
     Vector2 LastInput;
+    private string filePath; // Path to save the JSON file
 
     [SerializeField]
     private LayerMask playersCanPickUpThisLayer;
@@ -36,6 +46,7 @@ public class PlayerManager : MonoBehaviour
         // No instance yet, set this to it
         instance = this;
         playerController = playerPrefab.GetComponent<Player>();
+        filePath = Path.Combine(Application.persistentDataPath, "scoreboard.json");
     }
 
     void FixedUpdate()
@@ -138,14 +149,15 @@ public class PlayerManager : MonoBehaviour
         string[] playerData = message.Split('/');
         for (int i = 0; i < playerData.Length - 1; i++)
         {
-            try {
+            try
+            {
                 string[] currentPlayerData = playerData[i].Split('|');
                 int playerId = int.Parse(currentPlayerData[0]);
                 float x = float.Parse(currentPlayerData[1]);
                 float y = float.Parse(currentPlayerData[2]);
                 UpdatePlayerPosition(playerId, x, y);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 Debug.LogWarning($"Couldn't parse {playerData[i]}");
             }
@@ -233,7 +245,7 @@ public class PlayerManager : MonoBehaviour
         {
             return closestItem;
         }
-        
+
         float minimumDistance = Mathf.Infinity;
         Vector2 currentPos = playerPos;
         foreach (Collider2D item in items)
@@ -293,13 +305,64 @@ public class PlayerManager : MonoBehaviour
         return players[id];
     }
 
+    public void UpdateScoreboard()
+    {
+        // Initialize list
+        List<PlayerData> playerScores = new List<PlayerData>();
+
+        if (File.Exists(filePath))
+        {
+            // Scoreboard file already exists, add all existing players to the list to sort them alongside new entrants
+            string existingPlayers = File.ReadAllText(filePath);
+            Debug.Log("Found existing scoreboard file" + existingPlayers);
+            try {
+                playerScores = JsonConvert.DeserializeObject<List<PlayerData>>(existingPlayers);
+            } catch (Exception) {
+                Debug.LogWarning("Could not read scoreboard file!");
+            }
+            
+        }
+
+        foreach (KeyValuePair<int, Player> player in players)
+        {
+            try
+            {
+                // Add player name and balance to a serializable field
+                string username = player.Value.username;
+                float currentBalance = (float) player.Value.balance;
+                PlayerData curPlayerData = new PlayerData {
+                    playerName = username,
+                    balance = currentBalance
+                };
+
+                Debug.Log($"Added player {curPlayerData.playerName} to the scoreboard");
+                playerScores.Add(curPlayerData);
+            }
+            catch (NullReferenceException)
+            {
+                Debug.Log("Couldn't find player");
+            }
+        }
+
+        playerScores.Sort((x, y) => y.balance.CompareTo(x.balance));
+
+        // Serialize the object to JSON
+        string json = JsonConvert.SerializeObject(playerScores, Formatting.Indented);
+
+        // Write the JSON string to a file
+        File.WriteAllText(filePath, json);
+
+        Debug.Log($"Scoreboard updated in {filePath}");
+    }
+
     public void RemovePlayer(int ID)
     {
         string username = players[ID].username;
-        if (NetworkController.isHost) {
+        if (NetworkController.isHost)
+        {
             MainThreadDispatcher.instance.Enqueue(() => ChatManager.instance.SendSystemMessage($"{username} left the game"));
         }
-        
+
         Player curPlayer = players[ID];
         players.Remove(ID);
         MainThreadDispatcher.instance.Enqueue(() => curPlayer.Delete());
@@ -321,7 +384,8 @@ public class PlayerManager : MonoBehaviour
         clientPlayer = null;
         foreach (KeyValuePair<int, Player> player in players)
         {
-            try {
+            try
+            {
                 player.Value.Delete();
             }
             catch (NullReferenceException)
