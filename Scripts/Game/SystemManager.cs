@@ -52,7 +52,7 @@ public class SystemManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        timer = 300;
+        timer = 30;
     }
 
     public void InitializeGame()

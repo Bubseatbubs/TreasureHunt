@@ -76,7 +76,7 @@ public class NetworkController : MonoBehaviour
 
     /* 
     Connect to an already existing host as a client.
-    Host sends client an ID to use for the session.
+    Host sends the client an ID to use for the session.
     */
     public bool ConnectToGame(string hostIP, int port, string name)
     {

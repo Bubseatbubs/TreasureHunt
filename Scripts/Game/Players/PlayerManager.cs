@@ -352,7 +352,7 @@ public class PlayerManager : MonoBehaviour
         // Write the JSON string to a file
         File.WriteAllText(filePath, json);
 
-        Debug.Log($"Scoreboard updated in {filePath}");
+        ChatManager.CreateMessageInChat($"Updated Scoreboard.json, located in {filePath}");
     }
 
     public void RemovePlayer(int ID)
