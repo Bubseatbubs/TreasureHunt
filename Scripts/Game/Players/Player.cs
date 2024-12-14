@@ -6,11 +6,13 @@ using Unity.IO.LowLevel.Unsafe;
 using System;
 using TMPro;
 using System.Linq;
+using Unity.VisualScripting;
 
 public class Player : MonoBehaviour
 {
     public CinemachineVirtualCamera virtualCamera;
-    public float moveSpeed;
+    public float baseMoveSpeed;
+    public float moveSpeed { get; private set; }
     public Rigidbody2D rb2d;
     public Vector2 forceToApply;
     public float forceDamping;
@@ -26,15 +28,15 @@ public class Player : MonoBehaviour
     public double carriedValueMultiplier { get; private set; }
     public double balance { get; private set; }
     private PlayerStats statWindow;
-
     float rotationSpeed = 15f;
+
+    [SerializeField]
+    Animator animator;
 
     private static readonly Quaternion LeftRotation = Quaternion.Euler(0f, 180f, 0f);
     private static readonly Quaternion RightRotation = Quaternion.Euler(0f, 0f, 0f);
     bool facingRight;
-
-    [SerializeField]
-    private LayerMask canPickUpThisLayer;
+    public bool isMoving { get; private set; }
 
     [SerializeField]
     private TextMeshProUGUI usernameDisplay;
@@ -58,6 +60,7 @@ public class Player : MonoBehaviour
         facingRight = true;
         usernameCanvas.transform.SetParent(null);
         usernameDisplay.transform.rotation = Quaternion.identity;
+        animator = GetComponent<Animator>();
     }
 
     void FixedUpdate()
@@ -67,6 +70,7 @@ public class Player : MonoBehaviour
             PlayerInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical")).normalized;
         }
 
+        // Rotate player if direction changed
         if (facingRight && transform.rotation != RightRotation)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, RightRotation, Time.deltaTime * rotationSpeed);
@@ -119,8 +123,30 @@ public class Player : MonoBehaviour
 
     void Move(Vector2 input)
     {
-        Vector2 moveForce = input * (moveSpeed * (1 - speedMultiplier));
+        moveSpeed = baseMoveSpeed * (1 - speedMultiplier);
+
+        Vector2 moveForce = input * moveSpeed;
         ApplyForce(moveForce);
+
+        // Animation
+        if (Math.Abs(moveForce.x) + Math.Abs(moveForce.y) == 0)
+        {
+            animator.SetFloat("Speed", 0);
+        }
+        else {
+            float moveSpeedPercentage = moveSpeed / baseMoveSpeed;
+            animator.SetFloat("Speed", moveSpeedPercentage);
+        }
+
+        // Set bool for if player is moving
+        if (moveForce.x != 0 || moveForce.y != 0)
+        {
+            isMoving = true;
+        }
+        else
+        {
+            isMoving = false;
+        }
 
         // Check direction of player
         if (moveForce.x < 0)

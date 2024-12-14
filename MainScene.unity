@@ -1170,7 +1170,7 @@ GameObject:
   - component: {fileID: 233925224}
   - component: {fileID: 233925226}
   - component: {fileID: 233925227}
-  m_Layer: 9
+  m_Layer: 11
   m_Name: PillarDecorBottom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11436,7 +11436,7 @@ GameObject:
   - component: {fileID: 1750772630}
   - component: {fileID: 1750772629}
   - component: {fileID: 1750772628}
-  m_Layer: 0
+  m_Layer: 11
   m_Name: PillarDecorTop
   m_TagString: Untagged
   m_Icon: {fileID: 0}
