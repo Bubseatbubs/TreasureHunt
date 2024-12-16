@@ -153,7 +153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rb2d: {fileID: 3216704220418910689}
-  itemObject: {fileID: 8062582853628198269}
+  fakeItemTemplate: {fileID: 8208618662462055479, guid: de591baadc8979047a7c8ce81d440fd3, type: 3}
 --- !u!50 &3216704220418910689
 Rigidbody2D:
   serializedVersion: 4

@@ -234,6 +234,8 @@ public class PlayerManager : MonoBehaviour
     public static void UpdateItemPickup(int playerID, int itemID)
     {
         players[playerID].AddItem(itemID);
+
+        ItemManager.StartItemPickupAnimation(itemID, players[playerID]);
         ItemManager.HideItem(itemID);
     }
 

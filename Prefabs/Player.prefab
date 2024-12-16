@@ -158,6 +158,7 @@ GameObject:
   - component: {fileID: 4586782655430018913}
   - component: {fileID: 666427423953430820}
   - component: {fileID: 1351807925004874835}
+  - component: {fileID: 4192541523229676326}
   m_Layer: 3
   m_Name: FootstepSounds
   m_TagString: Untagged
@@ -297,6 +298,30 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!167 &4192541523229676326
+AudioReverbZone:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2664844414460571096}
+  m_Enabled: 1
+  m_MinDistance: 10
+  m_MaxDistance: 15
+  m_ReverbPreset: 9
+  m_Room: -1000
+  m_RoomHF: 0
+  m_DecayTime: 2.91
+  m_DecayHFRatio: 1.3
+  m_Reflections: -602
+  m_ReflectionsDelay: 0.015
+  m_Reverb: -302
+  m_ReverbDelay: 0.022
+  m_HFReference: 5000
+  m_Diffusion: 100
+  m_Density: 100
+  m_LFReference: 250
+  m_RoomLF: 0
 --- !u!1 &3788792368056422823
 GameObject:
   m_ObjectHideFlags: 0

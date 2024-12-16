@@ -76,6 +76,11 @@ public class ItemManager : MonoBehaviour
         items[itemID].HideItem();
     }
 
+    public static void StartItemPickupAnimation(int itemID, Player player)
+    {
+        items[itemID].StartItemPickupAnimation(player);
+    }
+
     public static void RespawnItem(int itemID)
     {
         items[itemID].RespawnItem();

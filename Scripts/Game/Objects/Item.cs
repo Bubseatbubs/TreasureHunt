@@ -13,7 +13,7 @@ public class Item : MonoBehaviour
     public bool pickedUp { get; private set; }
 
     [SerializeField]
-    private GameObject itemObject;
+    private GameObject fakeItemTemplate;
 
     // Start is called before the first frame update
     void Start()
@@ -50,16 +50,24 @@ public class Item : MonoBehaviour
         return rb2d.position;
     }
 
+    public void StartItemPickupAnimation(Player player)
+    {
+        GameObject fakeItem = Instantiate(fakeItemTemplate, rb2d.position, Quaternion.identity);
+        FakeItem fakeItemClass = fakeItem.GetComponent<FakeItem>();
+        fakeItem.transform.localScale = this.transform.localScale;
+        fakeItemClass.SetPlayerToGoTo(player);
+    }
+
     public void HideItem()
     {
         pickedUp = true;
-        itemObject.SetActive(false);
+        gameObject.SetActive(false);
     }
 
     public void RespawnItem()
     {
         pickedUp = false;
-        itemObject.SetActive(true);
+        gameObject.SetActive(true);
     }
 
     void OnCollisionStay2D(Collision2D collision)
